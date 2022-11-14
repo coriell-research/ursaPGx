@@ -1,0 +1,23 @@
+Package: ursaPGx
+Type: Package
+Title: Annotate PGx star alleles using phased VCFs
+Version: 0.1.0
+Author: c(
+    person("Gennaro", "Calendo", email = "gcalendo@coriell.org",
+           role = c("aut", "cre")),
+    person("Coriell Institute for Medical Research", role = c("cph", "fnd")))
+Description: A package for annotating samples with PGx star alleles based on 
+    phased data from VCF files.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+BugReports: https://github.com/coriell-research/ursaPGx/issues
+Suggests: 
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
+Depends: 
+    R (>= 2.10)
+RoxygenNote: 7.2.1
+Imports: 
+    data.table,
+    VariantAnnotation
