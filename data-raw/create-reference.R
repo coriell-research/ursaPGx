@@ -29,8 +29,14 @@ grch38_dt <- rbindlist(lapply(grch38_files, fread))
 grch37_dt <- rbindlist(lapply(grch37_files, fread))
 names(grch38_dt) <- gsub(" ", "", names(grch38_dt))
 names(grch37_dt) <- gsub(" ", "", names(grch37_dt))
-grch38_dt <- grch38_dt[ReferenceSequence != "REFERENCE" & Type == "substitution"]
-grch37_dt <- grch37_dt[ReferenceSequence != "REFERENCE" & Type == "substitution"]
+grch38_dt <- grch38_dt[ReferenceSequence != "REFERENCE"]
+grch37_dt <- grch37_dt[ReferenceSequence != "REFERENCE"]
+
+# Recode the insertions and deletions to match VCF spec
+grch38_dt[ReferenceAllele == "-", ReferenceAllele := "<INS>"]
+grch38_dt[VariantAllele == "-", VariantAllele := "<DEL>"]
+grch37_dt[ReferenceAllele == "-", ReferenceAllele := "<INS>"]
+grch37_dt[VariantAllele == "-", VariantAllele := "<DEL>"]
 
 # Split by individual haplotypes
 grch38_h <- split(grch38_dt, by="HaplotypeName")
@@ -112,16 +118,20 @@ grch37_gene_def <- lapply(grch37_g, processDefinition, hg19_alias)
 message("Creating GRanges objects from definitions...")
 # Plain list of objects, not GRangesList
 grch38_gene_grl <- lapply(grch38_gene_def, makeGRangesFromDataFrame,
-                          ignore.strand=TRUE, seqinfo=Seqinfo(genome="hg38"))
+                          ignore.strand=TRUE, seqinfo=Seqinfo(genome="hg38"),
+                          keep.extra.columns=TRUE)
 grch37_gene_grl <- lapply(grch37_gene_def, makeGRangesFromDataFrame,
-                          ignore.strand=TRUE, seqinfo=Seqinfo(genome="hg19"))
+                          ignore.strand=TRUE, seqinfo=Seqinfo(genome="hg19"),
+                          keep.extra.columns=TRUE)
 grch38_gene_grl <- lapply(grch38_gene_grl, keepStandardChromosomes)
 grch37_gene_grl <- lapply(grch37_gene_grl, keepStandardChromosomes)
 
 grch38_haplotype_grl <- lapply(grch38_haplotype_def, makeGRangesFromDataFrame,
-                            ignore.strand=TRUE, seqinfo=Seqinfo(genome="hg38"))
+                            ignore.strand=TRUE, seqinfo=Seqinfo(genome="hg38"),
+                            keep.extra.columns=TRUE)
 grch37_haplotype_grl <- lapply(grch37_haplotype_def, makeGRangesFromDataFrame,
-                            ignore.strand=TRUE, seqinfo=Seqinfo(genome="hg19"))
+                            ignore.strand=TRUE, seqinfo=Seqinfo(genome="hg19"),
+                            keep.extra.columns=TRUE)
 grch38_haplotype_grl <- lapply(grch38_haplotype_grl, keepStandardChromosomes)
 grch37_haplotype_grl <- lapply(grch37_haplotype_grl, keepStandardChromosomes)
 
