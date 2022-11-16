@@ -1,113 +1,141 @@
 #' Check if all haplotype ranges are in the PGx object for the given gene
 #'
 #' Determine callable positions by checking to see if all positions in the allele
-#' definition are present in the VCF file. 
+#' definition are present in the VCF file.
 #' @param x PGx object
 #' @param gr GRanges object
 #' @return logical vector indicating if all positions are present in the
 #' sample VCF for the given haplotype.
-checkComplete <- function(x, gr) {
+checkCallable <- function(x, gr) {
   vcf_gr <- SummarizedExperiment::rowRanges(x)
   ov <- IRanges::subsetByOverlaps(vcf_gr, gr, type = "equal")
   if (length(ov) == length(gr)) TRUE else FALSE
 }
 
-#' Extract the genotype matrix from the PGx object and melt longer
-#' 
-#' @import data.table
+#' Extract genotype matrix as data.table and pivot longer
+#'
 #' @param x PGx object
-#' @return data.table
-getGenotypeDT <- function(x) {
-  gt <- VariantAnnotation::geno(x)$GT
-  gt_dt <- data.table::as.data.table(gt)
-  row_dt <- data.table::as.data.table(SummarizedExperiment::rowRanges(x))
-  row_dt[, ALT := S4Vectors::unstrsplit(IRanges::CharacterList(VariantAnnotation::alt(x)))]
-  dt <- cbind(row_dt, gt_dt)
-
-  # Create unique index based on position, ref, and alt information
-  dt[, id := paste(seqnames, start, end, REF, ALT, sep = ".")]
-
-  keep_cols <- c("id", colnames(gt))
-  dt <- dt[, .SD, .SDcols = keep_cols]
+#' @return data.table with rows for every sample x position + GT
+genotypeMatrixToDT <- function(x) {
+  dt <- data.table::as.data.table(
+    VariantAnnotation::geno(x)$GT,
+    keep.rownames = "id"
+    )
   dt.m <- data.table::melt(
     dt,
     id.vars = "id",
-    value.name = "GT",
     variable.name = "sample",
+    value.name = "gt",
     variable.factor = FALSE
   )
-
   return(dt.m)
 }
 
-#' Convert genotype calls to nucleotides
+#' Split the id field of a genotype data.table
 #'
-#' @import data.table
 #' @param x data.table
-#' @return data.table
-genotypeToNucleotides <- function(x) {
-  dt <- copy(x)
-  dt[, c("chr", "start", "end", "REF", "ALT") := tstrsplit(id, ".", fixed = TRUE)]
+splitID <- function(x) {
+  x[, c("chr.vcf", "start.vcf", "end.vcf", "REF.vcf", "ALT.vcf") := tstrsplit(id, ".", fixed=TRUE)]
+  return(x)
+}
 
-  # Split genotype into haplotype calls
-  dt[, c("h1", "h2") := tstrsplit(GT, "|", fixed = TRUE)]
+#' Merge the sample data.tables to the definitions
+#'
+#' @param x sample data.table
+#' @param y haplotype definition data.table
+joinSampleToDef <- function(x, y) {
+  dt <- merge(x, y, by = "id", all.x = TRUE, all.y = TRUE)
+  return(dt)
+}
 
-  # Convert GT to nucleotides
-  dt[, `:=`(n1 = data.table::fcase(
-                 h1 == "0", REF,
-                 h1 != "0", substr(ALT, as.numeric(h1), as.numeric(h1)),
-                 default = NA),
-            n2 = data.table::fcase(
-                 h2 == "0", REF,
-                 h2 != "0", substr(ALT, as.numeric(h2), as.numeric(h2)),
-                 default = NA))]
-  dt[, id := NULL]
-  setcolorder(dt, c("sample", "GT", "REF", "ALT", "h1", "h2", "n1", "n2"))
+#' Clean the merged data.table
+#'
+#' @param x data.table after joining definition to genotype dt
+#' @param gene Gene name used to determine which columns contain allele definitions
+cleanJoined <- function(x, gene) {
+  allele_idx <- grep(gene, names(x), value = TRUE)
 
+  # In VCF but not in definition -- mismatch of IDs?
+  x[is.na(chr.def),
+    (allele_idx) := lapply(.SD, function(x) fcoalesce(x, REF.vcf)),
+    by = id, .SDcols = allele_idx]
+  x[is.na(chr.def), `:=`(chr.def = chr.vcf, start.def = start.vcf,
+                         end.def = end.vcf, REF.def = REF.vcf,
+                         ALT.def = ALT.vcf)]
+
+  # Missing information from the definition -- fill with REF allele
+  x[is.na(chr.vcf), `:=`(chr.vcf = chr.def, start.vcf = start.def,
+                         end.vcf = end.def, REF.vcf = REF.def,
+                         ALT.vcf = ALT.def)]
+
+  return(x)
+}
+
+#' Convert the GT column of the cleaned data.table to nucleotide calls
+#'
+#' @param x data.table after cleaning
+convertGTtoNucleotides <- function(x) {
+  x[, c("h1", "h2") := data.table::tstrsplit(GT, "|", fixed = TRUE)]
+  x[, `:=`(
+    n1 = data.table::fcase(
+      h1 == "0", REF.vcf,
+      h1 != "0", substr(ALT.vcf, as.numeric(h1), as.numeric(h1)),
+      default = NA
+    ),
+    n2 = data.table::fcase(
+      h2 == "0", REF.vcf,
+      h2 != "0", substr(ALT.vcf, as.numeric(h2), as.numeric(h2)),
+      default = NA
+    )
+  )]
+
+  return(x)
+}
+
+#' Hamming distance between vectors
+#'
+#' @param x data.table
+#' @param ref reference column of the data.table
+#' @param cols vector of column names containing haplotype definitions
+hammingDistance <- function(x, ref, cols) {
+  dt <- x[, lapply(.SD, function(x) sum(x != get(ref), na.rm = TRUE)), .SDcols = cols]
   return(dt)
 }
 
 #' Score the haplotype call based on the hamming distance value
-#' 
+#'
 #' @param x vector of hamming distance values
-#' @param exact logical. Should only 0-distance (exact matches) be returned?
-scoreHaplotype <- function(x, exact = TRUE) {
-  matches <- which(x == 0)
-  if (!exact) {
-    if (length(matches) == 0) {
-      return(which.min(x))
-    }
-  }
-  matches
+#' @param mismatches logical. Return matches with a score less than or equal to this value
+scoreMatches <- function(x, mismatches = 0) {
+  which(x <= mismatches)
 }
 
 #' Extract the star allele string from the call string
 #'
 #' If the position is empty from the call string --> no exact match then assume
 #' reference allele and assign the *1 allele
-#' 
-#' @param x string of called star alleles
+#'
+#' @param x named vector of called star alleles
 #' @param gene Gene name to remove from the star allele
-#' @param alleles Vector of alleles that were kept in the analysis
 #' @return character string of star allele calls for the given sample
-extractStar <- function(x, gene, alleles) {
-  s <- alleles[x]
-  s <- gsub(gene, "", s)
+extractStar <- function(x, gene) {
+  alleles <- names(x)
+  s <- gsub(gene, "", alleles)
   s <- paste(s, collapse = ",")
   if (s == "") return("*1") else return(s)
 }
 
 #' Strip suballele ids and return only unique major alleles
-#' 
+#'
 #' @param x string of suballele calls
 #' @return character string with only unique major star alleles
 summarizeAlleles <- function(x) {
   s <- unlist(strsplit(x, split = ",", fixed = TRUE))
   a <- gsub("\\.[0-9]+", "", s)
-  
+
   if (all(a == "*1"))
-      return("*1")
-  
+    return("*1")
+
   stars <- a[which(a != "*1")]
   paste(unique(stars), collapse = ",")
 }
@@ -127,83 +155,73 @@ summarizeAlleles <- function(x) {
 #' calls are summarized to the major allele level.
 #' @import data.table
 #' @param x PGx object
-#' @param exact logical. Should exact matches be used to determine the star
-#' allele call? default TRUE, only calls with a hamming distance == 0 are
-#' returned. if FALSE then the next best match is returned. i.e. star allele
-#' with the minimum hamming distance to the observed haplotype.
+#' @param mismatches logical. Report alleles with a hamming distance (number of)
+#' mismatches) less than or equal to this value. Default == 0 (perfect match).
 #' @param summarize logical. Should star allele calls be summarized up to the
 #' major allele level. Default TRUE. If FALSE, sub-alleles are returned for each
 #' called haplotype.
 #' @export
 #' @return data.table with allele calls for each sample in the PGx object
-callPhasedDiplotypes <- function(x, exact = TRUE, summarize = TRUE) {
+callPhasedDiplotypes <- function(x, mismatches = 0, summarize = TRUE) {
   gene <- pgxGene(x)
   build <- pgxBuild(x)
-  grl <- switch (build,
-    GRCh38 = ursaPGx:::grch38_haplotype_grl,
-    GRCh37 = ursaPGx:::grch37_haplotype_grl
+  def <- switch (pgxBuild(x),
+    GRCh38 = grch38_def,
+    GRCh37 = grch37_def
   )
-  def <- switch (build,
-    GRCh38 = ursaPGx:::grch38_gene_def,
-    GRCh37 = ursaPGx:::grch37_gene_def
+  refs <- switch (pgxBuild(x),
+    GRCh38 = grch38_haplotype_grl,
+    GRCh37 = grch37_haplotype_grl
   )
-  gr <- switch (build,
-    GRCh38 = ursaPGx:::grch38_gene_grl,
-    GRCh37 = ursaPGx:::grch37_gene_grl
+
+  # Check the sample VCF for callable haplotypes
+  haplotypes <- def[Gene == gene, unique(HaplotypeName)]
+  refs <- refs[haplotypes]
+  callable <- sapply(refs, checkCallable, x = x, simplify = TRUE, USE.NAMES = TRUE)
+  callable <- names(callable[callable])
+
+  # Construct a definition data.table from the callable haplotypes
+  dt <- def[HaplotypeName %chin% callable]
+  dt.w <- dcast(dt, id ~ HaplotypeName, value.var = "VariantAllele", fill = NA)
+  dt.w[, c("chr.def", "start.def", "end.def", "REF.def", "ALT.def") := tstrsplit(id, ".", fixed = TRUE)]
+  dt.w[, (callable) := lapply(.SD, function(x) fcoalesce(x, REF.def)), .SDcols = callable]
+
+  # Extract the genotype matrix from the sample VCF
+  gt <- VariantAnnotation::geno(x)$GT
+  gt <- data.table::as.data.table(gt, keep.rownames = "id")
+  gt.m <- data.table::melt(gt, id.vars = "id", value.name = "GT", variable.name = "sample")
+
+  # Join the callable positions onto the data
+  merged <- merge(
+    x = gt.m,
+    y = dt.w,
+    by = "id",
+    all.x = TRUE,
+    all.y = TRUE,
+    allow.cartesian = TRUE
   )
-  def <- def[[gene]]
-  gr <- gr[[gene]]
+  merged[, c("chr.vcf", "start.vcf", "end.vcf", "REF.vcf", "ALT.vcf") := tstrsplit(id, ".", fixed = TRUE)]
+  merged <- unique(merged)
+  cleaned <- cleanJoined(merged, gene = gene)
+  converted <- convertGTtoNucleotides(cleaned)
 
-  # Get all haplotype GRanges for the desired gene
-  hnames <- setdiff(names(def), c("chr", "start", "end", "REF", "ALT"))
-  refs <- grl[hnames]
+  # Use Hamming distance as core in calling haplotypes
+  hd1 <- converted[, lapply(.SD, function(x) sum(x != n1, na.rm = TRUE)), by = sample, .SDcols = callable]
+  hd2 <- converted[, lapply(.SD, function(x) sum(x != n2, na.rm = TRUE)), by = sample, .SDcols = callable]
+  hd1 <- as.matrix(hd1, rownames = "sample")
+  hd2 <- as.matrix(hd2, rownames = "sample")
+  call1 <- apply(hd1, 1, scoreMatches, mismatches = mismatches, simplify = TRUE)
+  call2 <- apply(hd2, 1, scoreMatches, mismatches = mismatches, simplify = TRUE)
 
-  # Check for callable positions
-  keep <- vapply(refs, checkComplete, logical(1), x = x, USE.NAMES = TRUE)
-  keep_alleles <- names(keep)[keep]
+  # Extract star alleles from each call
+  star1 <- vapply(call1, extractStar, gene = gene, FUN.VALUE = character(1))
+  star2 <- vapply(call2, extractStar, gene = gene, FUN.VALUE = character(1))
 
-  # Keep only the callable haplotypes in the definition
-  def[, id := paste(chr, start, end, REF, ALT, sep = ".")]
-  keep_cols <- c("id", keep_alleles)
-  def <- def[, .SD, .SDcols = keep_cols]
-
-  # Join the definition table to the observed genotypes
-  gt_dt <- getGenotypeDT(x)
-  joined <- merge(x = gt_dt, y = def, by = "id", all.x = TRUE, all.y = FALSE)
-  joined <- genotypeToNucleotides(joined)
-  
-  # Check for mismatches after the join and remove alleles that are mismatched
-  mismatches <- joined[, any(sapply(.SD, anyNA))]
-  if (mismatches) {
-      warning("Positional matches present but REF/ALT do not match between VCF and definition.")
-  }
-
-  # Calculate hamming distance between observed string and definition string
-  hm_n1 <- joined[, lapply(.SD, function(x) sum(x != n1, na.rm = TRUE)), by = sample, .SDcols = keep_alleles]
-  hm_n2 <- joined[, lapply(.SD, function(x) sum(x != n2, na.rm = TRUE)), by = sample, .SDcols = keep_alleles]
-  hm_n1 <- as.matrix(hm_n1, rownames = "sample")
-  hm_n2 <- as.matrix(hm_n2, rownames = "sample")
-
-  # Call star alleles based on hamming distance
-  call1 <- apply(hm_n1, 1, scoreHaplotype, simplify = FALSE)
-  call2 <- apply(hm_n2, 1, scoreHaplotype, simplify = FALSE)
-
-  # Clean the call string by stripping the gene name
-  star1 <- vapply(call1, extractStar, gene = gene, alleles = keep_alleles,
-                  FUN.VALUE = character(1))
-  star2 <- vapply(call2, extractStar, gene = gene, alleles = keep_alleles,
-                  FUN.VALUE = character(1))
-
-  result <- data.table::data.table(
-    sample = names(star1),
-    H1 = star1,
-    H2 = star2
-    )
+  result <- data.table::data.table(sample = names(star1), H1 = star1, H2 = star2)
 
   if (!summarize)
     return(result)
-  
-  result[, `:=`(H1 = summarizeAlleles(H1), H2 = summarizeAlleles(H2)), by = sample]
 
+  result[, `:=`(H1 = summarizeAlleles(H1), H2 = summarizeAlleles(H2)), by = sample]
   return(result)
 }

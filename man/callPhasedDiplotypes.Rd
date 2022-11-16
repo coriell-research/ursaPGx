@@ -4,17 +4,15 @@
 \alias{callPhasedDiplotypes}
 \title{Call phased diplotypes (star alleles) for all samples in a PGx object}
 \usage{
-callPhasedDiplotypes(x, exact = TRUE, summarize = TRUE)
+callPhasedDiplotypes(x, mismatches = 0, summarize = TRUE)
 }
 \arguments{
 \item{x}{PGx object}
 
-\item{exact}{logical. Should exact matches be used to determine the star
-allele call? default TRUE, only calls with a hamming distance == 0 are
-returned. if FALSE then the next best match is returned. i.e. star allele
-with the minimum hamming distance to the observed haplotype.}
+\item{mismatches}{logical. Report alleles with a hamming distance (number of)
+mismatches) less than or equal to this value. Default == 0 (perfect match).}
 
-\item{summarize}{logical. Should star allele calls be summairzed up to the
+\item{summarize}{logical. Should star allele calls be summarized up to the
 major allele level. Default TRUE. If FALSE, sub-alleles are returned for each
 called haplotype.}
 }

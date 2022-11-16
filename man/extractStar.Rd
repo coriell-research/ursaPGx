@@ -4,14 +4,12 @@
 \alias{extractStar}
 \title{Extract the star allele string from the call string}
 \usage{
-extractStar(x, gene, alleles)
+extractStar(x, gene)
 }
 \arguments{
-\item{x}{string of called star alleles}
+\item{x}{named vector of called star alleles}
 
 \item{gene}{Gene name to remove from the star allele}
-
-\item{alleles}{Vector of alleles that were kept in the analysis}
 }
 \value{
 character string of star allele calls for the given sample

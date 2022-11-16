@@ -20,4 +20,5 @@ Depends:
 RoxygenNote: 7.2.1
 Imports: 
     data.table,
+    SummarizedExperiment,
     VariantAnnotation
