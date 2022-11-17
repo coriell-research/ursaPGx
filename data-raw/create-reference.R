@@ -1,146 +1,59 @@
-#  Create Haplotype reference GRanges from PharmVar db
+# Create reference by extracting ranges from PharmVar VCF files
 #
-# The script pulls whatever is the latest version of the Pharmvar db and creates
-# reference files that get used internally by the package.
 # ------------------------------------------------------------------------------
-library(data.table)
-library(GenomicRanges)
-library(GenomeInfoDb)
+suppressPackageStartupMessages(library(VariantAnnotation))
 
-
-message("Downloading PharmVar Database...")
-url <- "https://www.pharmvar.org/get-download-file?name=ALL&refSeq=ALL&fileType=zip&version=current"
-zipped <- tempfile()
-unzipped <- tempdir()
-download.file(url, destfile = zipped)
-
-message("Extracting PharmVarDB...")
-fpaths <- utils::unzip(zipped, overwrite = TRUE, exdir = unzipped)
-
-message("Reading haplotype definitions...")
-haplotypes <- fpaths[grepl("haplotypes.tsv", fpaths)]
-grch38_files <- haplotypes[grepl("GRCh38", haplotypes)]
-grch37_files <- haplotypes[grepl("GRCh37", haplotypes)]
-names(grch38_files) <- gsub("\\..*haplotypes\\.tsv", "", basename(grch38_files))
-names(grch37_files) <- gsub("\\..*haplotypes\\.tsv", "", basename(grch37_files))
-
-# Bind into single table first to clean, then split into list again
-grch38_dt <- rbindlist(lapply(grch38_files, fread))
-grch37_dt <- rbindlist(lapply(grch37_files, fread))
-names(grch38_dt) <- gsub(" ", "", names(grch38_dt))
-names(grch37_dt) <- gsub(" ", "", names(grch37_dt))
-grch38_dt <- grch38_dt[ReferenceSequence != "REFERENCE"]
-grch37_dt <- grch37_dt[ReferenceSequence != "REFERENCE"]
-
-# Recode the insertions and deletions to match VCF spec
-grch38_dt[ReferenceAllele == "-", ReferenceAllele := "<INS>"]
-grch38_dt[VariantAllele == "-", VariantAllele := "<DEL>"]
-grch37_dt[ReferenceAllele == "-", ReferenceAllele := "<INS>"]
-grch37_dt[VariantAllele == "-", VariantAllele := "<DEL>"]
-
-# Split by individual haplotypes
-grch38_h <- split(grch38_dt, by="HaplotypeName")
-grch37_h <- split(grch37_dt, by="HaplotypeName")
-
-# Split by individual gene
-grch38_g <- split(grch38_dt, by="Gene")
-grch37_g <- split(grch37_dt, by="Gene")
-
-# Define the chromosome alias map
-# https://hgdownload.cse.ucsc.edu/goldenPath/hg{19|38}/database/chromAlias.txt.gz
-hg38_alias <- data.table::data.table(
-  refseq = c("NC_000001.11", "NC_000010.11", "NC_000011.10", "NC_000012.12",
-             "NC_000013.11", "NC_000014.9", "NC_000015.10", "NC_000016.10",
-             "NC_000017.11", "NC_000018.10", "NC_000019.10", "NC_000002.12",
-             "NC_000020.11", "NC_000021.9", "NC_000022.11", "NC_000003.12",
-             "NC_000004.12", "NC_000005.10", "NC_000006.12", "NC_000007.14",
-             "NC_000008.11", "NC_000009.12", "NC_012920.1", "NC_000023.11",
-             "NC_000024.10"),
-  ucsc = c("chr1", "chr10", "chr11", "chr12", "chr13", "chr14", "chr15",
-           "chr16", "chr17", "chr18", "chr19", "chr2", "chr20", "chr21",
-           "chr22", "chr3", "chr4", "chr5", "chr6", "chr7", "chr8", "chr9",
-           "chrM", "chrX", "chrY"),
-  key = "refseq"
-)
-hg19_alias <- data.table::data.table(
-  refseq = c("NC_000001.10", "NC_000010.10", "NC_000011.9", "NC_000012.11",
-             "NC_000013.10", "NC_000014.8", "NC_000015.9", "NC_000016.9",
-             "NC_000017.10", "NC_000018.9", "NC_000019.9", "NC_000002.11",
-             "NC_000020.10", "NC_000021.8", "NC_000022.10", "NC_000003.11",
-             "NC_000004.11", "NC_000005.9", "NC_000006.11", "NC_000007.13",
-             "NC_000008.10", "NC_000009.11", "NC_000023.10", "NC_000024.9"),
-  ucsc = c("chr1", "chr10", "chr11", "chr12", "chr13", "chr14", "chr15",
-           "chr16", "chr17", "chr18", "chr19", "chr2", "chr20", "chr21",
-           "chr22", "chr3", "chr4", "chr5", "chr6", "chr7", "chr8", "chr9",
-           "chrX", "chrY"),
-  key = "refseq"
+# message("Downloading PharmVar Database...")
+# url <- "https://www.pharmvar.org/get-download-file?name=ALL&refSeq=ALL&fileType=zip&version=current"
+# zipped <- tempfile()
+# unzipped <- tempdir()
+# download.file(url, destfile = zipped)
+#
+# message("Extracting PharmVarDB...")
+# fpaths <- utils::unzip(zipped, overwrite = TRUE, exdir = unzipped)
+fpaths <- list.files(
+  "data-raw/pharmvar-5.2.13",
+  pattern = "_[0-9]+\\.vcf",
+  recursive = TRUE,
+  full.names = TRUE
 )
 
-# Create a wide data.table from each definition and fill with reference bases
-processDefinition <- function(df, alias) {
+grch38_files <- grep("GRCh38", fpaths, value = TRUE)
+grch37_files <- grep("GRCh37", fpaths, value = TRUE)
+names(grch38_files) <- gsub("\\.vcf", "", basename(grch38_files))
+names(grch37_files) <- gsub("\\.vcf", "", basename(grch37_files))
 
-  # Join on the UCSC chromosome names
-  dt <- alias[df, on = c("refseq"="ReferenceSequence")]
-
-  # Create a unique identifier to use as rowids
-  dt[, rowid := paste(ucsc, VariantStart, VariantStop, ReferenceAllele,
-                      VariantAllele, sep = ".")]
-
-  # Cast wider into a matrix -- paste replaces NAs with ""
-  dt.w <- dcast(dt, rowid ~ HaplotypeName, value.var = "VariantAllele",
-                fun.aggregate = function(x) paste(x, collapse = ""))
-
-  # Split the idx column into separate parts and reorder
-  dt.w[, c("chr", "start", "end", "REF", "ALT") := tstrsplit(rowid, ".", fixed=TRUE)]
-  dt.w[, rowid := NULL]
-  setcolorder(dt.w, c("chr", "start", "end", "REF", "ALT"))
-
-  # Select all columns to fill -- columns with allele names only
-  allele_cols <- setdiff(names(dt.w), c("chr", "start", "end", "REF", "ALT"))
-
-  # Create NA values so coalesce works as expected
-  dt.w[, (allele_cols) := lapply(.SD, function(x) ifelse(x == "", NA, x)),
-       .SDcols = allele_cols]
-
-  # Fill in missing bases for each allele column
-  dt.w[, (allele_cols) := lapply(.SD, function(x) fcoalesce(x, REF)),
-       .SDcols = allele_cols]
-
-  return(dt.w)
-}
-
-message("Processing definitions files...")
-grch38_haplotype_def <- lapply(grch38_h, processDefinition, hg38_alias)
-grch37_haplotype_def <- lapply(grch37_h, processDefinition, hg19_alias)
-grch38_gene_def <- lapply(grch38_g, processDefinition, hg38_alias)
-grch37_gene_def <- lapply(grch37_g, processDefinition, hg19_alias)
-
-message("Creating GRanges objects from definitions...")
-# Plain list of objects, not GRangesList
-grch38_gene_grl <- lapply(grch38_gene_def, makeGRangesFromDataFrame,
-                          ignore.strand=TRUE, seqinfo=Seqinfo(genome="hg38"),
-                          keep.extra.columns=TRUE)
-grch37_gene_grl <- lapply(grch37_gene_def, makeGRangesFromDataFrame,
-                          ignore.strand=TRUE, seqinfo=Seqinfo(genome="hg19"),
-                          keep.extra.columns=TRUE)
-grch38_gene_grl <- lapply(grch38_gene_grl, keepStandardChromosomes)
-grch37_gene_grl <- lapply(grch37_gene_grl, keepStandardChromosomes)
-
-grch38_haplotype_grl <- lapply(grch38_haplotype_def, makeGRangesFromDataFrame,
-                            ignore.strand=TRUE, seqinfo=Seqinfo(genome="hg38"),
-                            keep.extra.columns=TRUE)
-grch37_haplotype_grl <- lapply(grch37_haplotype_def, makeGRangesFromDataFrame,
-                            ignore.strand=TRUE, seqinfo=Seqinfo(genome="hg19"),
-                            keep.extra.columns=TRUE)
+# Read each file into a VRanges object
+grch38_haplotype_grl <- lapply(grch38_files, readVcfAsVRanges, genome = Seqinfo(genome = "hg38"))
+grch37_haplotype_grl <- lapply(grch37_files, readVcfAsVRanges, genome = Seqinfo(genome = "hg19"))
 grch38_haplotype_grl <- lapply(grch38_haplotype_grl, keepStandardChromosomes)
 grch37_haplotype_grl <- lapply(grch37_haplotype_grl, keepStandardChromosomes)
 
-message("Saving reference ranges...")
+# Combine VRanges per gene into a single VRanges object
+grch38_haplotypes <- names(grch38_haplotype_grl)
+grch37_haplotypes <- names(grch37_haplotype_grl)
+names(grch38_haplotypes) <- gsub("_[0-9]+$", "", grch38_haplotypes)
+names(grch37_haplotypes) <- gsub("_[0-9]+$", "", grch37_haplotypes)
+grch38_genes <- unique(names(grch38_haplotypes))
+grch37_genes <- unique(names(grch37_haplotypes))
+
+getGrs <- function(x, hg38 = TRUE) {
+  if (hg38) {
+    l <- grch38_haplotype_grl[grch38_haplotypes[names(grch38_haplotypes) == x]]
+  } else {
+    l <- grch37_haplotype_grl[grch37_haplotypes[names(grch37_haplotypes) == x]]
+  }
+  names(l) <- NULL
+  unique(do.call(c, l))
+}
+
+grch38_gene_grl <- lapply(grch38_genes, getGrs)
+grch37_gene_grl <- lapply(grch37_genes, getGrs, hg38 = FALSE)
+names(grch38_gene_grl) <- grch38_genes
+names(grch37_gene_grl) <- grch37_genes
+
+# Save package data
 usethis::use_data(
-  grch38_gene_def, grch37_gene_def,
-  grch38_haplotype_def, grch37_haplotype_def,
-  grch38_gene_grl, grch37_gene_grl,
-  grch38_haplotype_grl, grch37_haplotype_grl,
+  grch38_gene_grl, grch37_gene_grl, grch38_haplotype_grl, grch37_haplotype_grl,
   overwrite = TRUE, internal = TRUE
 )
-message("Done.")
