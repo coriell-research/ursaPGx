@@ -53,43 +53,41 @@ joinSampleToDef <- function(x, y) {
 #' @param x data.table after joining definition to genotype dt
 #' @param gene Gene name used to determine which columns contain allele definitions
 cleanJoined <- function(x, gene) {
-  allele_idx <- grep(gene, names(x), value = TRUE)
-
-  # In VCF but not in definition -- mismatch of IDs?
-  x[is.na(chr.def),
-    (allele_idx) := lapply(.SD, function(x) fcoalesce(x, REF.vcf)),
-    by = id, .SDcols = allele_idx]
-  x[is.na(chr.def), `:=`(chr.def = chr.vcf, start.def = start.vcf,
-                         end.def = end.vcf, REF.def = REF.vcf,
-                         ALT.def = ALT.vcf)]
-
-  # Missing information from the definition -- fill with REF allele
-  x[is.na(chr.vcf), `:=`(chr.vcf = chr.def, start.vcf = start.def,
-                         end.vcf = end.def, REF.vcf = REF.def,
-                         ALT.vcf = ALT.def)]
-
-  return(x)
+    dt <- copy(x)
+    
+    allele_idx <- grep(gene, names(dt), value = TRUE)
+    
+    # In VCF but not in definition -- fill definition data
+    dt[is.na(chr.def), 
+       (allele_idx) := lapply(.SD, function(x) fcoalesce(x, ALT.def)), 
+       by = id, 
+       .SDcols = allele_idx]
+    
+    dt[is.na(chr.def), `:=`(chr.def = chr.vcf, start.def = start.vcf,
+                            end.def = end.vcf, REF.def = REF.vcf,
+                            ALT.def = ALT.vcf)]
+    
+    # Missing information from the definition -- fill with VCF data
+    dt[is.na(chr.vcf), `:=`(chr.vcf = chr.def, start.vcf = start.def,
+                            end.vcf = end.def, REF.vcf = REF.def,
+                            ALT.vcf = ALT.def)]
+    
+    return(dt)
 }
 
 #' Convert the GT column of the cleaned data.table to nucleotide calls
 #'
 #' @param x data.table after cleaning
 convertGTtoNucleotides <- function(x) {
-  x[, c("h1", "h2") := data.table::tstrsplit(GT, "|", fixed = TRUE)]
-  x[, `:=`(
-    n1 = data.table::fcase(
-      h1 == "0", REF.vcf,
-      h1 != "0", substr(ALT.vcf, as.numeric(h1), as.numeric(h1)),
-      default = NA
-    ),
-    n2 = data.table::fcase(
-      h2 == "0", REF.vcf,
-      h2 != "0", substr(ALT.vcf, as.numeric(h2), as.numeric(h2)),
-      default = NA
-    )
-  )]
-
-  return(x)
+    dt <- copy(x)
+    dt[, c("h1", "h2") := data.table::tstrsplit(GT, "|", fixed = TRUE)]
+    dt[, `:=`(n1 = data.table::fcase(h1 == "0", REF.vcf,
+                                     h1 != "0", substr(ALT.vcf, as.numeric(h1), as.numeric(h1)),
+                                     default = NA),
+              n2 = data.table::fcase(h2 == "0", REF.vcf,
+                                     h2 != "0", substr(ALT.vcf, as.numeric(h2), as.numeric(h2)),
+                                     default = NA))]
+  return(dt)
 }
 
 #' Hamming distance between vectors
@@ -205,7 +203,7 @@ callPhasedDiplotypes <- function(x, mismatches = 0, summarize = TRUE) {
   cleaned <- cleanJoined(merged, gene = gene)
   converted <- convertGTtoNucleotides(cleaned)
 
-  # Use Hamming distance as core in calling haplotypes
+  # Use Hamming distance as score in calling haplotypes
   hd1 <- converted[, lapply(.SD, function(x) sum(x != n1, na.rm = TRUE)), by = sample, .SDcols = callable]
   hd2 <- converted[, lapply(.SD, function(x) sum(x != n2, na.rm = TRUE)), by = sample, .SDcols = callable]
   hd1 <- as.matrix(hd1, rownames = "sample")
@@ -218,10 +216,9 @@ callPhasedDiplotypes <- function(x, mismatches = 0, summarize = TRUE) {
   star2 <- vapply(call2, extractStar, gene = gene, FUN.VALUE = character(1))
 
   result <- data.table::data.table(sample = names(star1), H1 = star1, H2 = star2)
-
   if (!summarize)
     return(result)
-
   result[, `:=`(H1 = summarizeAlleles(H1), H2 = summarizeAlleles(H2)), by = sample]
+  
   return(result)
 }
