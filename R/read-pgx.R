@@ -30,7 +30,7 @@ readPGx <- function(file, gene, build = "GRCh38") {
   )
   genome <- GenomeInfoDb::genome(ref)
   tab <- Rsamtools::TabixFile(file)
-  vcf <- VariantAnnotation::readVcf(tab, genome = genome, param = ref, row.names = FALSE)
+  vcf <- VariantAnnotation::readVcf(tab, genome = genome, param = ref)
 
   PGx(vcf, pgxGene = gene, pgxBuild = build)
 }
