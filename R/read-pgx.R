@@ -1,28 +1,3 @@
-#' Construct row IDs for the PGx object
-#'
-#' The \code{readPGx()} function does not read in the ID column of the VCF by
-#' default so rownames must be constructed manually. This is intentional so
-#' definition ids and VCF ids can match after conversion to a genotype matrix.
-#'
-#' @param x PGx object
-#' @return character vector of IDs
-createIDs <- function(x) {
-  refs <- as.character(VariantAnnotation::ref(x))
-  alts <- unlist(lapply(VariantAnnotation::alt(x), function(s) paste(as.character(s), collapse = "")))
-
-  gr <- SummarizedExperiment::rowRanges(x)
-  chrs <- as.character(GenomicRanges::seqnames(gr))
-  starts <- as.character(GenomicRanges::start(gr))
-  ends <- as.character(GenomicRanges::end(gr))
-
-  # Check to see that strings will not be recycled
-  lens <- sapply(list(refs, alts, chrs, starts, ends), length, simplify = TRUE)
-  stopifnot("All input lengths must be the same" = all(lens == lens[1]))
-
-  # Create unique names for the rowRanges
-  paste(chrs, starts, ends, refs, alts, sep = ".")
-}
-
 #' Read in PGx Data from VCF File
 #'
 #' This function is a wrapper around \link[VariantAnnotation]{readVcf()} that
@@ -56,7 +31,6 @@ readPGx <- function(file, gene, build = "GRCh38") {
   genome <- GenomeInfoDb::genome(ref)
   tab <- Rsamtools::TabixFile(file)
   vcf <- VariantAnnotation::readVcf(tab, genome = genome, param = ref, row.names = FALSE)
-  names(vcf) <- createIDs(vcf)
 
   PGx(vcf, pgxGene = gene, pgxBuild = build)
 }
