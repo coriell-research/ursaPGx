@@ -12,11 +12,11 @@ pgxHaplotypeRanges(haplotype, build = "GRCh38")
 \item{build}{Genome build. One of "GRCh38" or "GRCh37"}
 }
 \value{
-GRanges object with unique ranges for the given haplotype (star allele)
+\code{VRanges} object with unique ranges for the given haplotype (star allele)
 }
 \description{
 Return a GRanges object of the unique ranges for the given haplotype
 }
 \examples{
-pgxHaplotypeRanges("CYP2C19*2")
+pgxHaplotypeRanges("CYP2C19_2")
 }

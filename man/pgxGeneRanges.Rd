@@ -2,7 +2,7 @@
 % Please edit documentation in R/reference-accessors.R
 \name{pgxGeneRanges}
 \alias{pgxGeneRanges}
-\title{Return a GRanges object of the unique ranges for the given gene}
+\title{Return a VRanges object of the unique ranges for the given gene}
 \usage{
 pgxGeneRanges(gene, build = "GRCh38")
 }
@@ -12,11 +12,11 @@ pgxGeneRanges(gene, build = "GRCh38")
 \item{build}{Genome build. One of "GRCh38" or "GRCh37"}
 }
 \value{
-GRanges object with unique ranges for all haplotypes (star alleles)
+\code{VRanges} object with unique ranges for all haplotypes (star alleles)
 for the desired gene
 }
 \description{
-Return a GRanges object of the unique ranges for the given gene
+Return a VRanges object of the unique ranges for the given gene
 }
 \examples{
 pgxGeneRanges("CYP2C19")

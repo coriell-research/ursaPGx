@@ -6,11 +6,10 @@
 #' @examples pgxGenes()
 pgxGenes <- function(build = "GRCh38") {
   build <- match.arg(build)
-  def <- switch (build,
-    GRCh38 = ursaPGx:::grch38_def,
-    GRCh37 = ursaPGx:::grch37_def
+  switch (build,
+    GRCh38 = names(ursaPGx:::grch38_gene_grl),
+    GRCh37 = names(ursaPGx:::grch37_gene_grl)
   )
-  return(unique(def$Gene))
 }
 
 #' Return all available PGx haplotypes (star alleles)
@@ -21,44 +20,43 @@ pgxGenes <- function(build = "GRCh38") {
 #' @examples pgxHaplotypes()
 pgxHaplotypes <- function(build = "GRCh38") {
   build <- match.arg(build)
-  def <- switch (build,
-    GRCh38 = ursaPGx:::grch38_def,
-    GRCh37 = ursaPGx:::grch37_def
+  switch (build,
+    GRCh38 = names(ursaPGx:::grch38_haplotype_grl),
+    GRCh37 = names(ursaPGx:::grch37_haplotype_grl)
   )
-  return(unique(def$HaplotypeName))
 }
 
-#' Return a GRanges object of the unique ranges for the given gene
+#' Return a VRanges object of the unique ranges for the given gene
 #'
 #' @param gene Gene name
 #' @param build Genome build. One of "GRCh38" or "GRCh37"
-#' @return GRanges object with unique ranges for all haplotypes (star alleles)
+#' @return \code{VRanges} object with unique ranges for all haplotypes (star alleles)
 #' for the desired gene
 #' @export
 #' @examples pgxGeneRanges("CYP2C19")
 pgxGeneRanges <- function(gene, build = "GRCh38") {
   build <- match.arg(build)
-  ref <- switch (build,
+  grl <- switch (build,
     GRCh38 = ursaPGx:::grch38_gene_grl,
     GRCh37 = ursaPGx:::grch37_gene_grl
   )
   stopifnot("Gene must be one of pgxGenes()" = gene %in% pgxGenes(build))
-  ref[[gene]]
+  grl[[gene]]
 }
 
 #' Return a GRanges object of the unique ranges for the given haplotype
 #'
 #' @param haplotype Haplotype (star allele) name
 #' @param build Genome build. One of "GRCh38" or "GRCh37"
-#' @return GRanges object with unique ranges for the given haplotype (star allele)
+#' @return \code{VRanges} object with unique ranges for the given haplotype (star allele)
 #' @export
-#' @examples pgxHaplotypeRanges("CYP2C19*2")
+#' @examples pgxHaplotypeRanges("CYP2C19_2")
 pgxHaplotypeRanges <- function(haplotype, build = "GRCh38") {
   build <- match.arg(build)
-  ref <- switch (build,
+  grl <- switch (build,
     GRCh38 = ursaPGx:::grch38_haplotype_grl,
     GRCh37 = ursaPGx:::grch37_haplotype_grl
     )
   stopifnot("Haplotype must be one of pgxHaplotypes()" = haplotype %in% pgxHaplotypes(build))
-  ref[[haplotype]]
+  grl[[haplotype]]
 }
