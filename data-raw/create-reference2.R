@@ -80,6 +80,10 @@ hg19_alias <- data.table::data.table(
 grch38_def <- hg38_alias[grch38_dt]
 grch37_def <- hg19_alias[grch37_dt]
 
+# Remove sub-alleles and rsids
+grch38_def <- grch38_def[!HaplotypeName %like% "\\.[0-9]+" & !HaplotypeName %like% "^rs"]
+grch37_def <- grch37_def[!HaplotypeName %like% "\\.[0-9]+" & !HaplotypeName %like% "^rs"]
+
 # Create new ID column
 grch38_def[, id := paste(ucsc, VariantStart, VariantStop, ReferenceAllele, VariantAllele, sep = ".")]
 grch37_def[, id := paste(ucsc, VariantStart, VariantStop, ReferenceAllele, VariantAllele, sep = ".")]
