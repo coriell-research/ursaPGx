@@ -35,35 +35,4 @@ p
 > PGx gene: CYP2C19 
 > PGx build: GRCh38 
 > Number of samples: 3202
-
-# To call phased star alleles use the callPhasedDiplotypes() function
-df <- callPhasedDiplotypes(p)
->     sample  H1 H2
-> 1: HG00096  *2 *1
-> 2: HG00097  *1 *1
-> 3: HG00099 *17 *1
-> 4: HG00100  *1 *1
-> 5: HG00101  *1 *1
-> 6: HG00102 *17 *1
-```
-
-By default `callPhasedDiplotypes()` returns exact matches between the observed
-genotypes and allele definitions. The next best match can be returned by setting
-the argument `exact = FALSE`
-
-```
-df <- callPhasedDiplotypes(p, exact = FALSE)
-```
-
-Sub-allele level calls can be returned by setting `summarize = FALSE`
-
-```
-df <- callPhasedDiplotypes(p, summarize = FALSE)
->     sample            H1            H2
-> 1: HG00096 *2.002,*2.012 *1.002,*1.009
-> 2: HG00097 *1.002,*1.009 *1.002,*1.009
-> 3: HG00099       *17.001 *1.002,*1.009
-> 4: HG00100 *1.002,*1.009 *1.002,*1.009
-> 5: HG00101 *1.002,*1.009 *1.002,*1.009
-> 6: HG00102       *17.001 *1.002,*1.009
 ```
