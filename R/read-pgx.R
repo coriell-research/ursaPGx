@@ -28,9 +28,34 @@ readPGx <- function(file, gene, build = "GRCh38") {
     GRCh38 = unique(pgxGeneRanges(gene, build = "GRCh38")),
     GRCh37 = unique(pgxGeneRanges(gene, build = "GRCh37"))
   )
+  
+  # Determine the seqLevelStyle of the input file
+  vcf_head <- VariantAnnotation::scanVcfHeader(file)
+  vcf_style <- GenomeInfoDb::seqlevelsStyle(VariantAnnotation::reference(vcf_head))
+  stopifnot("Unknown seqLevelsStyle in input VCF" = vcf_style %in% c("NCBI", "UCSC", "dbSNP", "Ensembl"))
+  
+  # Adjust param seqlevels if necessary
+  param_style <- GenomeInfoDb::seqlevelsStyle(ref)
+  if (param_style != vcf_style) {
+      message("seqLevelStyles differ between reference ranges and input VCF.")
+      message("Reference ranges style:", param_style)
+      message("VCF style:", vcf_style)
+      message("Attempting to convert", param_style, "to", vcf_style)
+      GenomeInfoDb::seqlevelsStyle(ref) <- vcf_style
+  }
+  
+  # Read in the VCF data
   genome <- GenomeInfoDb::genome(ref)
   tab <- Rsamtools::TabixFile(file)
   vcf <- VariantAnnotation::readVcf(tab, genome = genome, param = ref)
-
-  PGx(vcf, pgxGene = gene, pgxBuild = build)
+  
+  # Perform a final check for only overlapping ranges between samples and reference
+  ov <- GenomicRanges::findOverlaps(
+      query = SummarizedExperiment::rowRanges(vcf), 
+      subject = ref, 
+      type = "equal"
+      )
+  vcf_filtered <- vcf[S4Vectors::queryHits(ov), ]
+  
+  PGx(vcf_filtered, pgxGene = gene, pgxBuild = build)
 }
