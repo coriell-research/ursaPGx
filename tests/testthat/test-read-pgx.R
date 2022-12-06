@@ -14,16 +14,11 @@ test_that("Every 1kg sample can be read in with readPGx", {
 
   # Mapping for chromosome to genes
   df <- data.frame(
-    chrom = c(
-      "chr1", "chr1", "chr7", "chr7", "chr7", "chr7", "chr7", "chr10",
-      "chr10", "chr10", "chr10", "chr11", "chr12", "chr13", "chr19",
-      "chr19", "chr19", "chr19", "chr19", "chr19", "chr22"
+    chrom = c("chr19", "chr19", "chr19", "chr10", "chr10", "chr10", 
+              "chr22", "chr7", "chr7", "chr19", "chr13", "chr12"
     ),
-    gene = c(
-      "CYP2J2", "DPYD", "CYP2W1", "CYP3A4", "CYP3A43", "CYP3A5", "CYP3A7",
-      "CYP26A1", "CYP2C19", "CYP2C8", "CYP2C9", "CYP2R1", "SLCO1B1", "NUDT15",
-      "CYP2A13", "CYP2A6", "CYP2B6", "CYP2F1", "CYP2S1", "CYP4F2",
-      "CYP2D6"
+    gene = c("CYP2A13", "CYP2A6", "CYP2B6", "CYP2C19", "CYP2C8", "CYP2C9", 
+             "CYP2D6", "CYP3A4", "CYP3A5", "CYP4F2", "NUDT15", "SLCO1B1"
     )
   )
 
