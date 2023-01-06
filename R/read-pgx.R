@@ -11,22 +11,22 @@
 #' The "create-reference.R" file included in the data-raw directory of
 #' this package describes the steps used to reproduce the construction of the
 #' GRanges object used in this function. These GRanges objects are accessible
-#' via the \code{pgxAlleleRanges()} function.
+#' via the \code{availableHaplotypeRanges()} function.
 #'
 #' @param file A phased and normalized VCF file. This file must be indexed (.tbi)
-#' @param gene The PGx gene to subset from VCF file. See \code{\link{pgxGenes()}} for available genes.
+#' @param gene The PGx gene to subset from VCF file. See \code{\link{availableGenes()}} for available genes.
 #' @param build The genome build. One of "GRCh38" or "GRCh37".
 #' @export
 #' @return Object of class PGx
 readPGx <- function(file, gene, build = "GRCh38") {
-  stopifnot("Genome not available" = build %in% c("GRCh38", "GRCh37"))
+  stopifnot("Genome must be one of 'GRCh38' or 'GRCh37'" = build %in% c("GRCh38", "GRCh37"))
   stopifnot("Multple genes supplied to function" = length(gene) == 1)
-  stopifnot("Gene not in gene list" = gene %in% pgxGenes())
+  stopifnot("Gene not in gene list" = gene %in% availableGenes())
 
   build <- match.arg(build)
   ref <- switch (build,
-    GRCh38 = unique(pgxGeneRanges(gene, build = "GRCh38")),
-    GRCh37 = unique(pgxGeneRanges(gene, build = "GRCh37"))
+    GRCh38 = unique(availableGeneRanges(gene, build = "GRCh38")),
+    GRCh37 = unique(availableGeneRanges(gene, build = "GRCh37"))
   )
   
   # Determine the seqLevelStyle of the input file
