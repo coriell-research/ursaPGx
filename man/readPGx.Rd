@@ -9,7 +9,7 @@ readPGx(file, gene, build = "GRCh38")
 \arguments{
 \item{file}{A phased and normalized VCF file. This file must be indexed (.tbi)}
 
-\item{gene}{The PGx gene to subset from VCF file. See \code{\link{pgxGenes()}} for available genes.}
+\item{gene}{The PGx gene to subset from VCF file. See \code{\link{availableGenes()}} for available genes.}
 
 \item{build}{The genome build. One of "GRCh38" or "GRCh37".}
 }
@@ -29,5 +29,5 @@ PharmVar VCF files available at \url{https://www.pharmvar.org/download}.
 The "create-reference.R" file included in the data-raw directory of
 this package describes the steps used to reproduce the construction of the
 GRanges object used in this function. These GRanges objects are accessible
-via the \code{pgxAlleleRanges()} function.
+via the \code{availableHaplotypeRanges()} function.
 }
