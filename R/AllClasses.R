@@ -16,7 +16,8 @@
   "PGx",
   slots = representation(
     pgxGene = "character",
-    pgxBuild = "character"
+    pgxBuild = "character",
+    callableAlleles = "character"
   ),
   contains = "CollapsedVCF"
 )
@@ -24,16 +25,27 @@
 #' @export
 #' @importFrom GenomicRanges GRanges
 #' @importClassesFrom VariantAnnotation VCF
-PGx <- function(vcf = VCF(collapsed = TRUE), pgxBuild = "", pgxGene = "") {
-  .PGx(vcf, pgxGene = pgxGene, pgxBuild = pgxBuild)
+PGx <- function(vcf = VCF(collapsed = TRUE), pgxBuild = "", pgxGene = "",
+                callableAlleles = "") {
+  .PGx(vcf, pgxGene = pgxGene, pgxBuild = pgxBuild, callableAlleles = callableAlleles)
 }
 
 setValidity("PGx", function(object) {
-  if (!is(object@pgxGene)[[1]] == "character") {
-    return("pgxGene must be non-empty")
-  }
-  if (!is(object@pgxBuild)[[1]] == "character") {
-    return("pgxBuild must be non-empty")
-  }
-  TRUE
+    if (!is(object@pgxGene)[[1]] == "character") {
+        return("pgxGene must be non-empty")
+        }
+    if (!is(object@pgxBuild)[[1]] == "character") {
+        return("pgxBuild must be non-empty")
+    }
+    if (length(object@callableAlleles) == 1) {
+        if (object@callableAlleles != "" && !object@callableAlleles %in% availableHaplotypes()) {
+            return("callableAlleles must be empty or one of availableHaplotypes()")
+        }
+    }
+    if (length(object@callableAlleles) > 1) {
+        if (!all(object@callableAlleles %in% availableHaplotypes())) {
+            return("callableAlleles must be in availableHaplotypes()")
+        }
+    }
+    TRUE
 })
