@@ -4,7 +4,7 @@
 \alias{.callSamplePhasedDiplotype}
 \title{Call the phased diplotype for a single sample (column) of the genotype matrix}
 \usage{
-.callSamplePhasedDiplotype(x, REF, ALT)
+.callSamplePhasedDiplotype(x, allele, REF, ALT)
 }
 \description{
 Call the phased diplotype for a single sample (column) of the genotype matrix
