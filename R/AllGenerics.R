@@ -15,3 +15,12 @@ setGeneric("getCallableAlleles", function(x) standardGeneric("getCallableAlleles
 
 #' @export
 setGeneric("extractHaplotypeRanges", function(x) standardGeneric("extractHaplotypeRanges"))
+
+#' @export
+setGeneric("pgxGenotypeCodesToNucleotides", function(x, allele, ...) standardGeneric("pgxGenotypeCodesToNucleotides"))
+
+#' @export
+setGeneric("callPhasedDiplotype", function(x) standardGeneric("callPhasedDiplotype"))
+
+#' @export
+setGeneric("callPhasedDiplotypes", function(x) standardGeneric("callPhasedDiplotypes"))
