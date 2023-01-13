@@ -1,9 +1,3 @@
----
-editor_options: 
-  markdown: 
-    wrap: 79
----
-
 ## ursaPGx <img src="man/figures/logo.png" align="right" height="139"/>
 
 The goal of this package is to use phased VCF data to assign star alleles to
