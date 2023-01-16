@@ -156,11 +156,14 @@ setMethod("pgxGenotypeCodesToNucleotides", "PGx", function(x, allele, ...) {
     stop("allele must be one of callableAlleles(x)")
   }
   def_gr <- availableHaplotypeRanges(allele, build = pgxBuild(x))
-  def_alt <- Biostrings::DNAStringSetList(alt(def_gr))
-  def_ref <- VariantAnnotation::ref(def_gr)
 
   # Subset the original PGx object for only the ranges in the definition
   p <- IRanges::subsetByOverlaps(x, def_gr, type = "equal")
+  
+  # Reorder the definition ranges to match the PGx ranges
+  def_gr <- def_gr[GenomicRanges::match(SummarizedExperiment::rowRanges(p), def_gr), ]
+  def_alt <- Biostrings::DNAStringSetList(as.list(alt(def_gr)))
+  def_ref <- VariantAnnotation::ref(def_gr)
 
   # Convert
   GT <- VariantAnnotation::geno(p)$GT
@@ -229,6 +232,7 @@ setMethod("callPhasedDiplotype", "PGx", function(x) {
   }
   allele <- callableAlleles(x)
   allele_gr <- availableHaplotypeRanges(allele, build = pgxBuild(x))
+  allele_gr <- allele_gr[GenomicRanges::match(SummarizedExperiment::rowRanges(x), allele_gr), ]
   def_ref <- as.character(VariantAnnotation::ref(allele_gr))
   def_alt <- VariantAnnotation::alt(allele_gr)
 
