@@ -12,7 +12,6 @@ suppressPackageStartupMessages(library(data.table))
 # message("Extracting PharmVarDB...")
 # fpaths <- utils::unzip(zipped, overwrite = TRUE, exdir = unzipped)
 
-
 fpaths <- list.files(
     "data-raw/pharmvar-5.2.13",
     pattern = "*.tsv",
@@ -71,10 +70,10 @@ grch38_dt <- hg38_alias[grch38_dt, on = c("refseq"="ReferenceSequence")]
 grch37_dt <- hg19_alias[grch37_dt, on = c("refseq"="ReferenceSequence")]
 
 # Relabel insertions and deletions to match VCF standard
-grch38_dt[Type == "insertion", ReferenceAllele := "<INS>"]
-grch37_dt[Type == "insertion", ReferenceAllele := "<INS>"]
-grch38_dt[Type == "deletion", VariantAllele := "<DEL>"]
-grch37_dt[Type == "deletion", VariantAllele := "<DEL>"]
+grch38_dt[Type == "insertion", `Reference Allele` := "<INS>"]
+grch37_dt[Type == "insertion", `Reference Allele` := "<INS>"]
+grch38_dt[Type == "deletion", `Variant Allele` := "<DEL>"]
+grch37_dt[Type == "deletion", `Variant Allele` := "<DEL>"]
 
 # Convert data.tables to GRanges for package
 grch38_gr <- GenomicRanges::makeGRangesFromDataFrame(
@@ -106,7 +105,18 @@ grch37_gene_grl <- split(grch37_gr, f = grch37_gr$Gene)
 grch38_haplotype_grl <- split(grch38_gr, f = grch38_gr$`Haplotype Name`)
 grch37_haplotype_grl <- split(grch37_gr, f = grch37_gr$`Haplotype Name`)
 
-# Save package data
+# -----------------------------------------------------------------------------
+# SPECIAL CASE FOR CYP2C19 *2 and *35
+# TODO Figure out a general solution
+cyp2c19_2 <- grch38_haplotype_grl[["CYP2C19*2"]]
+cyp2c19_35 <- grch38_haplotype_grl[["CYP2C19*35"]]
+is_missing <- setdiff(cyp2c19_2, cyp2c19_35)
+cyp2c19_d <- cyp2c19_2[which(cyp2c19_2 == is_missing), ]
+cyp2c19_35 <- c(cyp2c19_35, cyp2c19_d)
+cyp2c19_35$`Variant Allele2` <- c("G", "G", "G")
+grch38_haplotype_grl[["CYP2C19*35"]] <- cyp2c19_35
+
+# Save package data -----------------------------------------------------------
 usethis::use_data(
   grch38_gene_grl, grch37_gene_grl, grch38_haplotype_grl, grch37_haplotype_grl,
   overwrite = TRUE, internal = TRUE

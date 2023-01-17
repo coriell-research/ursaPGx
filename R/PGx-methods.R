@@ -200,7 +200,7 @@ setMethod("pgxGenotypeCodesToNucleotides", "PGx", function(x, allele, ...) {
       call2 <- star
 
   call_string <- paste0(call1, "|", call2)
-
+  
   return(call_string)
 }
 
@@ -220,6 +220,10 @@ setMethod("callPhasedDiplotype", "PGx", function(x) {
   allele_gr <- allele_gr[GenomicRanges::match(SummarizedExperiment::rowRanges(x), allele_gr), ]
   def_ref <- allele_gr$`Reference Allele`
   def_alt <- allele_gr$`Variant Allele`
+  
+  # Special case for nested CYP2C19*35 -- fix later
+  if (allele == "CYP2C19*35")
+      def_alt <- allele_gr$`Variant Allele2`
 
   gt <- geno(x)$GT
   lst <- asplit(gt, MARGIN = 2)
