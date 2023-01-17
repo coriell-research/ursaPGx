@@ -4,14 +4,14 @@
 \alias{.uniqueCalls}
 \title{Extract the unique diplotype calls from a vector of calls}
 \usage{
-.uniqueCalls(x, phased)
+.uniqueCalls(x, phased, ignore_nested)
 }
 \arguments{
-\item{x}{vector of diplotype calls. i.e. c("*1|*34", *10/Amb", ...)}
+\item{x}{vector of diplotype calls. i.e. c("*1|*34", *10/*2", ...)}
 
 \item{phased}{Should the output delimiter indicate that the data are phased 
 by splitting the calls using the pipe ("|") symbol. Default TRUE. If FALSE 
-then the "/" symbol will be used as a delimiter}
+then the "/" symbol will be used as a delimiter.}
 }
 \description{
 Extract the unique diplotype calls from a vector of calls

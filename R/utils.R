@@ -74,11 +74,11 @@ availableHaplotypeRanges <- function(haplotype, build = "GRCh38") {
 
 #' Extract the unique diplotype calls from a vector of calls
 #' 
-#' @param x vector of diplotype calls. i.e. c("*1|*34", *10/Amb", ...)
+#' @param x vector of diplotype calls. i.e. c("*1|*34", *10/*2", ...)
 #' @param phased Should the output delimiter indicate that the data are phased 
 #' by splitting the calls using the pipe ("|") symbol. Default TRUE. If FALSE 
-#' then the "/" symbol will be used as a delimiter
-.uniqueCalls <- function(x, phased) {
+#' then the "/" symbol will be used as a delimiter.
+.uniqueCalls <- function(x, phased, ignore_nested) {
     ss <- strsplit(x, "[\\|/]")
     
     h1 <- unique(unlist(lapply(ss, function(x) x[1])))
