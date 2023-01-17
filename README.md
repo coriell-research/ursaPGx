@@ -15,12 +15,15 @@ version of [PharmVar](https://www.pharmvar.org/download). See the
 
 This package is still in active development but can be installed with:
 
-    # Install the required Bioconductor packages
-    if (!requireNamespace("BiocManager", quietly = TRUE))
+```r
+# Install the required Bioconductor packages
+if (!requireNamespace("BiocManager", quietly = TRUE))
         install.packages("BiocManager")
+BiocManager::install("VariantAnnotation")
 
-    # Install ursaPGx from github
-    devtools::install_github("coriell-research/ursaPGx")
+# Install ursaPGx from github
+devtools::install_github("coriell-research/ursaPGx")
+```
 
 ## Example Usage
 
@@ -43,11 +46,8 @@ p <- readPGx(vcf, "CYP2C8")
 # Run the phased diplotype caller pipeline for CYP2C8
 df <- callPhasedDiplotypes(p)
 
-# Optionally add the results back to the colData slot of the PGx object
-colData(p) <- df
-
-# View the results
-head(colData(p))
+# Summarize the calls for each sample
+sdf <- summarizeDiplotypeCalls(df) 
 ```
 
 The `callPhasedDiplotypes()` method is a wrapper around several functions
@@ -61,19 +61,22 @@ p <- getCallableAlleles(p)
 # Use the getter method on the PGx object to retreive the full list
 callableAlleles(p)
 
-# For each callable allele convert the genotype matrix to nucleotides
+# For each callable allele, convert the genotype matrix to nucleotides
 # Only CYP2C8*3 is shown below
-p3 <- pgxGenotypeCodesToNucleotides(p, "CYP2C8_3")
+p3 <- pgxGenotypeCodesToNucleotides(p, "CYP2C8*3")
 
 # 3. Generate CYP2C8*11 allele calls for all samples
 df3 <- callPhasedDiplotype(p3)
+
+# 4. Summarize calls per sample
+sdf3 <-  summarizeDiplotypeCalls(df3) 
 ```
 
 ## Accessing the definitions
 
-Allele definitions are downloaded from PharmVar and converted into `VRanges`
-objects. The user can access all of the allele definitions with the following
-functions:
+Allele definitions are downloaded from [PharmVar](https://www.pharmvar.org) and 
+converted into `GRanges` objects. The user can access all of the allele 
+definitions with the following functions:
 
 ``` r
 # List all available PGx genes with definitions
@@ -82,19 +85,18 @@ availableGenes()
 # List all available star alleles with definitions
 availableHaplotypes()
 
-# Access the VRanges for a given gene
+# Access the GRanges for a given gene
 availableGeneRanges("CYP2C8")
 
-# Access VRanges for the given the star allele
-availableHaplotypeRanges("CYP2C8_3")
+# Access GRanges for the given the star allele
+availableHaplotypeRanges("CYP2C8*3")
 ```
 
 ## Working with the `PGx` object
 
 `PGx` objects inherit from `VariantAnnotation::VCF` object so anything you can
 do with a `VCF` object you can do with a `PGx` object. See the
-[VariantAnnotation
-documentation](https://bioconductor.org/packages/release/bioc/html/VariantAnnotation.html)
+[VariantAnnotation documentation](https://bioconductor.org/packages/release/bioc/html/VariantAnnotation.html)
 for more details.
 
 ``` r
