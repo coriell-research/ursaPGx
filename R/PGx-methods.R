@@ -221,9 +221,13 @@ setMethod("callPhasedDiplotype", "PGx", function(x) {
   def_ref <- allele_gr$`Reference Allele`
   def_alt <- allele_gr$`Variant Allele`
   
-  # Special case for nested CYP2C19*35 -- fix later
+  # Special case for nested CYP2C19*35 in CYP2C19*2
   if (allele == "CYP2C19*35")
       def_alt <- allele_gr$`Variant Allele2`
+  
+  # Special case for CYP2C9*8 and CYP2C9*27 -- use ALT defined by sample VCF
+  if (allele == "CYP2C9*8" || allele == "CYP2C9*27")
+      def_alt <- alt(x)
 
   gt <- geno(x)$GT
   lst <- asplit(gt, MARGIN = 2)
