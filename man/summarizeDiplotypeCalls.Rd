@@ -4,18 +4,15 @@
 \alias{summarizeDiplotypeCalls}
 \title{Summarize a diplotype call DataFrame}
 \usage{
-summarizeDiplotypeCalls(df, phased = TRUE, ambiguous = FALSE)
+summarizeDiplotypeCalls(df, phased = TRUE)
 }
 \arguments{
 \item{df}{DataFrame or data.frame of diplotype calls with samples as row.names 
-and each column cooresponding to a star allele}
+and each column corresponding to a star allele}
 
 \item{phased}{logical. Default TRUE. Should the output delimiter indicate that 
 the data was phased, i.e. should the output delimiter be "|". If FALSE the 
 output delimter is "/"}
-
-\item{ambiguous}{logical. Default FALSE. Should ambiguous ("Amb") calls be 
-reported for each sample?}
 }
 \value{
 DataFrame with summarized calls for each sample

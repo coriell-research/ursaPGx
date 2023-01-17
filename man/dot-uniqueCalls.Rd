@@ -4,7 +4,7 @@
 \alias{.uniqueCalls}
 \title{Extract the unique diplotype calls from a vector of calls}
 \usage{
-.uniqueCalls(x, phased, ambiguous)
+.uniqueCalls(x, phased)
 }
 \arguments{
 \item{x}{vector of diplotype calls. i.e. c("*1|*34", *10/Amb", ...)}
@@ -12,9 +12,6 @@
 \item{phased}{Should the output delimiter indicate that the data are phased 
 by splitting the calls using the pipe ("|") symbol. Default TRUE. If FALSE 
 then the "/" symbol will be used as a delimiter}
-
-\item{ambiguous}{Should ambiguous calls be included in the summary. Default 
-FALSE, removes any "Amb" calls from the final diplotype call}
 }
 \description{
 Extract the unique diplotype calls from a vector of calls
