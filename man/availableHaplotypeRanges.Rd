@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils.R
 \name{availableHaplotypeRanges}
 \alias{availableHaplotypeRanges}
-\title{Return a VRanges object of the unique ranges for the given haplotype}
+\title{Return a GRanges object of the unique ranges for the given haplotype}
 \usage{
 availableHaplotypeRanges(haplotype, build = "GRCh38")
 }
@@ -12,10 +12,10 @@ availableHaplotypeRanges(haplotype, build = "GRCh38")
 \item{build}{Genome build. One of "GRCh38" or "GRCh37"}
 }
 \value{
-\code{VRanges} object with unique ranges for the given haplotype (star allele)
+\code{GRanges} object with unique ranges for the given haplotype (star allele)
 }
 \description{
-Return a VRanges object for the all ranges in the haplotype definition for 
+Return a GRanges object for the all ranges in the haplotype definition for 
 the given haplotype.
 }
 \examples{

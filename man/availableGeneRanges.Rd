@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils.R
 \name{availableGeneRanges}
 \alias{availableGeneRanges}
-\title{Return a VRanges object of the unique ranges for the given gene}
+\title{Return a GRanges object of the unique ranges for the given gene}
 \usage{
 availableGeneRanges(gene, build = "GRCh38")
 }
@@ -12,11 +12,11 @@ availableGeneRanges(gene, build = "GRCh38")
 \item{build}{Genome build. One of "GRCh38" or "GRCh37"}
 }
 \value{
-\code{VRanges} object with unique ranges for all haplotypes (star alleles)
+\code{GRanges} object with unique ranges for all haplotypes (star alleles)
 for the desired gene
 }
 \description{
-Return a VRanges object containing all unique ranges for a given PGx gene 
+Return a GRanges object containing all unique ranges for a given PGx gene 
 definition.
 }
 \examples{

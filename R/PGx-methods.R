@@ -51,14 +51,11 @@ setReplaceMethod("callableAlleles", "PGx", function(x, value) {
   x
 })
 
-#' Extract a list of VRanges for all defined haplotypes of the PGx object
+#' Extract a GRangesList for all defined haplotypes of the PGx object
 #'
-#' Return a list of VRanges objects for all of the defined haplotype ranges of
-#' the given PGx object.
 #' @export
 #' @rdname extractHaplotypeRanges
-#' @return list of VRanges object containing all allele definitions for the
-#' given PGx object
+#' @return GRangesList of haplotype definitions
 setMethod("extractHaplotypeRanges", "PGx", function(x) {
   haplotypes <- grep(pgxGene(x), availableHaplotypes(pgxBuild(x)), value = TRUE)
   vrl <- lapply(haplotypes, availableHaplotypeRanges, build = pgxBuild(x))
@@ -84,9 +81,9 @@ setMethod("extractHaplotypeRanges", "PGx", function(x) {
 #' @rdname getCallableAlleles
 #' @return PGx object with callableAlleles slot filled
 setMethod("getCallableAlleles", "PGx", function(x) {
-  vrl <- extractHaplotypeRanges(x)
+  grl <- extractHaplotypeRanges(x)
   q <- SummarizedExperiment::rowRanges(x)
-  callable <- lapply(vrl, function(x) .isCallable(q, s = x))
+  callable <- lapply(grl, function(x) .isCallable(q, s = x))
   callable <- Filter(Negate(is.null), callable)
   stopifnot("There are no callable alleles" = length(callable) >= 1)
   callableAlleles(x) <- names(callable)
@@ -162,8 +159,8 @@ setMethod("pgxGenotypeCodesToNucleotides", "PGx", function(x, allele, ...) {
   
   # Reorder the definition ranges to match the PGx ranges
   def_gr <- def_gr[GenomicRanges::match(SummarizedExperiment::rowRanges(p), def_gr), ]
-  def_alt <- Biostrings::DNAStringSetList(as.list(alt(def_gr)))
-  def_ref <- VariantAnnotation::ref(def_gr)
+  def_alt <- Biostrings::DNAStringSetList(as.list(def_gr$`Variant Allele`))
+  def_ref <- def_gr$`Reference Allele`
 
   # Convert
   GT <- VariantAnnotation::geno(p)$GT
@@ -181,8 +178,7 @@ setMethod("pgxGenotypeCodesToNucleotides", "PGx", function(x, allele, ...) {
 
 #' Extracts star allele e.g. CYP2D6_12 -> *12
 .extractStarAllele <- function(allele) {
-  star <- regmatches(allele, regexpr("_[0-9]+$", allele))
-  star <- gsub("_", "*", star)
+  star <- regmatches(allele, regexpr("\\*[0-9]+$", allele))
 
   return(star)
 }
@@ -196,23 +192,12 @@ setMethod("pgxGenotypeCodesToNucleotides", "PGx", function(x, allele, ...) {
   h2 <- unlist(lapply(gts, function(x) x[2]))
   hm <- rbind(h1, h2)
 
-  call1 <- ""
-  call2 <- ""
-  if (all(hm[1, ] == REF)) {
-    call1 <- "*1"
-  } else if (all(hm[1, ] == ALT)) {
-    call1 <- star
-  } else {
-    call1 <- "Amb"
-  }
-
-  if (all(hm[2, ] == REF)) {
-    call2 <- "*1"
-  } else if (all(hm[2, ] == ALT)) {
-    call2 <- star
-  } else {
-    call2 <- "Amb"
-  }
+  call1 <- "*1"
+  call2 <- "*1"
+  if (all(hm[1, ] == ALT))
+      call1 <- star
+  if (all(hm[2, ] == ALT)) 
+      call2 <- star
 
   call_string <- paste0(call1, "|", call2)
 
@@ -233,8 +218,8 @@ setMethod("callPhasedDiplotype", "PGx", function(x) {
   allele <- callableAlleles(x)
   allele_gr <- availableHaplotypeRanges(allele, build = pgxBuild(x))
   allele_gr <- allele_gr[GenomicRanges::match(SummarizedExperiment::rowRanges(x), allele_gr), ]
-  def_ref <- as.character(VariantAnnotation::ref(allele_gr))
-  def_alt <- VariantAnnotation::alt(allele_gr)
+  def_ref <- allele_gr$`Reference Allele`
+  def_alt <- allele_gr$`Variant Allele`
 
   gt <- geno(x)$GT
   lst <- asplit(gt, MARGIN = 2)

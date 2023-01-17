@@ -2,15 +2,13 @@
 % Please edit documentation in R/PGx-methods.R
 \name{extractHaplotypeRanges,PGx-method}
 \alias{extractHaplotypeRanges,PGx-method}
-\title{Extract a list of VRanges for all defined haplotypes of the PGx object}
+\title{Extract a GRangesList for all defined haplotypes of the PGx object}
 \usage{
 \S4method{extractHaplotypeRanges}{PGx}(x)
 }
 \value{
-list of VRanges object containing all allele definitions for the
-given PGx object
+GRangesList of haplotype definitions
 }
 \description{
-Return a list of VRanges objects for all of the defined haplotype ranges of
-the given PGx object.
+Extract a GRangesList for all defined haplotypes of the PGx object
 }
