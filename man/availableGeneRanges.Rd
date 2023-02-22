@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils.R
 \name{availableGeneRanges}
 \alias{availableGeneRanges}
-\title{Return a GRanges object of the unique ranges for the given gene}
+\title{Return an GRanges object containing all unique ranges for the given gene}
 \usage{
 availableGeneRanges(gene, build = "GRCh38")
 }
@@ -17,7 +17,11 @@ for the desired gene
 }
 \description{
 Return a GRanges object containing all unique ranges for a given PGx gene 
-definition.
+definition. This function collects all haplotype ranges for the given gene
+and returns only ranges for unique positions across all definitions. This 
+function is mostly intended for internal use in \code{readPGx()} where the
+returned ranges are used to collect all positions annotated in the sample 
+VCF.
 }
 \examples{
 pgxGeneRanges("CYP2C19")
