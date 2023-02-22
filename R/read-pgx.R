@@ -25,8 +25,8 @@ readPGx <- function(file, gene, build = "GRCh38") {
 
   build <- match.arg(build)
   ref <- switch (build,
-    GRCh38 = unique(availableGeneRanges(gene, build = "GRCh38")),
-    GRCh37 = unique(availableGeneRanges(gene, build = "GRCh37"))
+    GRCh38 = availableGeneRanges(gene, build = "GRCh38"),
+    GRCh37 = availableGeneRanges(gene, build = "GRCh37")
   )
   
   # Determine the seqLevelStyle of the input file
