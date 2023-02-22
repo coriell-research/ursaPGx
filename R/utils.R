@@ -31,10 +31,14 @@ availableHaplotypes <- function(build = "GRCh38") {
   )
 }
 
-#' Return a GRanges object of the unique ranges for the given gene
+#' Return an GRanges object containing all unique ranges for the given gene 
 #' 
 #' Return a GRanges object containing all unique ranges for a given PGx gene 
-#' definition. 
+#' definition. This function collects all haplotype ranges for the given gene
+#' and returns only ranges for unique positions across all definitions. This 
+#' function is mostly intended for internal use in \code{readPGx()} where the
+#' returned ranges are used to collect all positions annotated in the sample 
+#' VCF.
 #' 
 #' @param gene Gene name
 #' @param build Genome build. One of "GRCh38" or "GRCh37"
@@ -49,12 +53,22 @@ availableGeneRanges <- function(gene, build = "GRCh38") {
     GRCh37 = ursaPGx:::grch37_gene_grl
   )
   stopifnot("Gene must be one of availableGenes()" = gene %in% availableGenes(build))
-  grl[[gene]]
+  uniq <- unique(unlist(grl[[gene]]))
+  
+  # Return only the GRanges information -- excluding any metadata
+  gr <- GenomicRanges::GRanges(
+      seqnames = seqnames(uniq),
+      ranges = ranges(uniq),
+      strand = strand(uniq),
+      seqinfo = seqinfo(uniq)
+      )
+  names(gr) <- NULL
+  gr
 }
 
-#' Return a GRanges object of the unique ranges for the given haplotype
+#' Return a VRanges object of the unique ranges for the given haplotype
 #' 
-#' Return a GRanges object for the all ranges in the haplotype definition for 
+#' Return a VRanges object for the all ranges in the haplotype definition for 
 #' the given haplotype.
 #' 
 #' @param haplotype Haplotype (star allele) name
