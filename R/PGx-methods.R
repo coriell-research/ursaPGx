@@ -2,15 +2,19 @@
 #' @rdname PGx-class
 #' @export
 setMethod("show", "PGx", function(object) {
-  cat(
-    "Class: PGx\n",
-    "PGx gene:", object@pgxGene, "\n",
-    "PGx build:", object@pgxBuild, "\n",
-    "Callable Alleles",
-    paste0("(", length(object@callableAlleles), "):"),
-    head(object@callableAlleles, 3), "...\n",
-    "Number of samples:", ncol(object), " \n",
-    sep = " "
+    n_alleles <- length(object@callableAlleles)
+    if (object@callableAlleles[1] == "")
+        n_alleles <- 0
+    
+    cat(
+        "Class: PGx\n",
+        "PGx gene:", object@pgxGene, "\n",
+        "PGx build:", object@pgxBuild, "\n",
+        "Callable Alleles",
+        paste0("(", n_alleles, "):"),
+        head(object@callableAlleles, 3), "...\n",
+        "Number of samples:", ncol(object), " \n",
+        sep = " "
   )
 })
 
@@ -51,6 +55,24 @@ setReplaceMethod("callableAlleles", "PGx", function(x, value) {
   x
 })
 
+#' Getter method for pgxReferenceDataframe slot of a PGx object
+#' 
+#' The pgxReferenceDataframe contains the expanded reference strings for every 
+#' callable allele of the PGx object
+#' @export
+#' @rdname pgxReferenceDataframe
+#' @return data.frame of positions by callable haplotypes
+setMethod("pgxReferenceDataframe", "PGx", function(x) x@pgxReferenceDataframe)
+
+#' Setter method for pgxReferenceDataframe slot of PGx object
+#'
+#' @export
+setReplaceMethod("pgxReferenceDataframe", "PGx", function(x, value) {
+    x@pgxReferenceDataframe <- value
+    validObject(x)
+    x
+})
+
 #' Extract a GRangesList for all defined haplotypes of the PGx object
 #'
 #' @export
@@ -72,7 +94,7 @@ setMethod("extractHaplotypeRanges", "PGx", function(x) {
   }
 }
 
-#' Return a vector of allele names that able to be called for the given PGx object
+#' Return a vector of allele names that are able to be called for the given PGx object
 #'
 #' Callable alleles are alleles where all defined positions are present in the
 #' sample VCF. The function will also add the vector of the callable alleles to
@@ -89,6 +111,37 @@ setMethod("getCallableAlleles", "PGx", function(x) {
   callableAlleles(x) <- names(callable)
 
   return(x)
+})
+
+#' Build the reference data frame from the callable allele positions
+#' 
+#' The reference data.frame consists of rows for all positions present in the 
+#' sample VCF and columns for every callable allele haplotype. Since not all 
+#' positions are present in every haplotype, missing positions for each 
+#' haplotype are filled in with reference bases.
+#' @export
+#' @rdname buildReferenceDataframe
+#' @return data.frame containing haplotype definitions
+setMethod("buildReferenceDataframe", "PGx", function(x) {
+    stopifnot("There are no callable alleles" = callableAlleles(x) != "")
+    
+    grl <- lapply(callableAlleles(x), availableHaplotypeRanges, build = pgxBuild(x))
+    names(grl) <- callableAlleles(x)
+    
+    rr <- SummarizedExperiment::rowRanges(x)
+    df <- data.frame(REF = rr$REF, row.names = names(rr))
+    
+    for (i in seq_along(grl)) {
+        idx <- SummarizedExperiment::match(grl[[i]], rr)
+        alts <- VariantAnnotation::alt(grl[[i]])
+        col <- names(grl)[i]
+        df[idx, col] <- alts   
+    }
+    
+    df[] <- lapply(df, function(x) data.table::fcoalesce(x, df$REF))
+    pgxReferenceDataframe(x) <- df
+    
+    return(x)
 })
 
 #' Taken from:

@@ -57,5 +57,5 @@ readPGx <- function(file, gene, build = "GRCh38") {
       )
   vcf_filtered <- vcf[S4Vectors::queryHits(ov), ]
   
-  PGx(vcf_filtered, pgxGene = gene, pgxBuild = build)
+  PGx(vcf_filtered, pgxGene = gene, pgxBuild = build, pgxReferenceDataframe = data.frame())
 }

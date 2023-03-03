@@ -2,7 +2,7 @@
 % Please edit documentation in R/PGx-methods.R
 \name{getCallableAlleles,PGx-method}
 \alias{getCallableAlleles,PGx-method}
-\title{Return a vector of allele names that able to be called for the given PGx object}
+\title{Return a vector of allele names that are able to be called for the given PGx object}
 \usage{
 \S4method{getCallableAlleles}{PGx}(x)
 }

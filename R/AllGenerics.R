@@ -14,6 +14,15 @@ setGeneric("callableAlleles<-", function(x, ..., value) standardGeneric("callabl
 setGeneric("getCallableAlleles", function(x) standardGeneric("getCallableAlleles"))
 
 #' @export
+setGeneric("pgxReferenceDataframe", function(x) standardGeneric("pgxReferenceDataframe"))
+
+#' @export
+setGeneric("pgxReferenceDataframe<-", function(x, ..., value) standardGeneric("pgxReferenceDataframe<-"))
+
+#' @export
+setGeneric("buildReferenceDataframe", function(x) standardGeneric("buildReferenceDataframe"))
+
+#' @export
 setGeneric("extractHaplotypeRanges", function(x) standardGeneric("extractHaplotypeRanges"))
 
 #' @export

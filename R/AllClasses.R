@@ -17,7 +17,8 @@
   slots = representation(
     pgxGene = "character",
     pgxBuild = "character",
-    callableAlleles = "character"
+    callableAlleles = "character",
+    pgxReferenceDataframe = "data.frame"
   ),
   contains = "CollapsedVCF"
 )
@@ -26,8 +27,9 @@
 #' @importFrom GenomicRanges GRanges
 #' @importClassesFrom VariantAnnotation VCF
 PGx <- function(vcf = VCF(collapsed = TRUE), pgxBuild = "", pgxGene = "",
-                callableAlleles = "") {
-  .PGx(vcf, pgxGene = pgxGene, pgxBuild = pgxBuild, callableAlleles = callableAlleles)
+                callableAlleles = "", pgxReferenceDataframe = data.frame()) {
+  .PGx(vcf, pgxGene = pgxGene, pgxBuild = pgxBuild, callableAlleles = callableAlleles,
+       pgxReferenceDataframe = pgxReferenceDataframe)
 }
 
 setValidity("PGx", function(object) {
