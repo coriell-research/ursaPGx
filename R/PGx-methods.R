@@ -2,19 +2,20 @@
 #' @rdname PGx-class
 #' @export
 setMethod("show", "PGx", function(object) {
-    n_alleles <- length(object@callableAlleles)
-    if (object@callableAlleles[1] == "")
-        n_alleles <- 0
-    
-    cat(
-        "Class: PGx\n",
-        "PGx gene:", object@pgxGene, "\n",
-        "PGx build:", object@pgxBuild, "\n",
-        "Callable Alleles",
-        paste0("(", n_alleles, "):"),
-        head(object@callableAlleles, 3), "...\n",
-        "Number of samples:", ncol(object), " \n",
-        sep = " "
+  n_alleles <- length(object@pgxCallableAlleles)
+  if (object@pgxCallableAlleles[1] == "") {
+    n_alleles <- 0
+  }
+
+  cat(
+    "Class: PGx\n",
+    "PGx gene:", object@pgxGene, "\n",
+    "PGx build:", object@pgxBuild, "\n",
+    "Callable Alleles",
+    paste0("(", n_alleles, "):"),
+    head(object@pgxCallableAlleles, 3), "...\n",
+    "Number of samples:", ncol(object), " \n",
+    sep = " "
   )
 })
 
@@ -36,28 +37,28 @@ setMethod("pgxGene", "PGx", function(x) x@pgxGene)
 #' @return Name of the genome build
 setMethod("pgxBuild", "PGx", function(x) x@pgxBuild)
 
-#' Getter method for callableAlleles slot of a PGx object
+#' Getter method for pgxCallableAlleles slot of a PGx object
 #'
-#' The callableAlleles slot contains a character vector of allele names for all
+#' The pgxCallableAlleles slot contains a character vector of allele names for all
 #' allele definitions that are completely represented in the sample VCF and are
 #' thus deemed 'callable'.
 #' @export
-#' @rdname callableAlleles
+#' @rdname pgxCallableAlleles
 #' @return Character vector of alleles that can be called
-setMethod("callableAlleles", "PGx", function(x) x@callableAlleles)
+setMethod("pgxCallableAlleles", "PGx", function(x) x@pgxCallableAlleles)
 
-#' Setter method for callableAlleles slot of PGx object
+#' Setter method for pgxCallableAlleles slot of PGx object
 #'
 #' @export
-setReplaceMethod("callableAlleles", "PGx", function(x, value) {
-  x@callableAlleles <- value
+setReplaceMethod("pgxCallableAlleles", "PGx", function(x, value) {
+  x@pgxCallableAlleles <- value
   validObject(x)
   x
 })
 
 #' Getter method for pgxReferenceDataframe slot of a PGx object
-#' 
-#' The pgxReferenceDataframe contains the expanded reference strings for every 
+#'
+#' The pgxReferenceDataframe contains the expanded reference strings for every
 #' callable allele of the PGx object
 #' @export
 #' @rdname pgxReferenceDataframe
@@ -68,23 +69,19 @@ setMethod("pgxReferenceDataframe", "PGx", function(x) x@pgxReferenceDataframe)
 #'
 #' @export
 setReplaceMethod("pgxReferenceDataframe", "PGx", function(x, value) {
-    x@pgxReferenceDataframe <- value
-    validObject(x)
-    x
+  x@pgxReferenceDataframe <- value
+  validObject(x)
+  x
 })
 
 #' Extract a GRangesList for all defined haplotypes of the PGx object
-#'
-#' @export
-#' @rdname extractHaplotypeRanges
-#' @return GRangesList of haplotype definitions
-setMethod("extractHaplotypeRanges", "PGx", function(x) {
+.extractHaplotypeRanges <- function(x) {
   haplotypes <- grep(pgxGene(x), availableHaplotypes(pgxBuild(x)), value = TRUE)
   vrl <- lapply(haplotypes, availableHaplotypeRanges, build = pgxBuild(x))
   names(vrl) <- haplotypes
 
   return(vrl)
-})
+}
 
 #' Determine if one set of ranges completely encompasses another
 .isCallable <- function(q, s) {
@@ -98,212 +95,157 @@ setMethod("extractHaplotypeRanges", "PGx", function(x) {
 #'
 #' Callable alleles are alleles where all defined positions are present in the
 #' sample VCF. The function will also add the vector of the callable alleles to
-#' the callableAlleles slot of the PGx object
+#' the pgxCallableAlleles slot of the PGx object
 #' @export
-#' @rdname getCallableAlleles
-#' @return PGx object with callableAlleles slot filled
-setMethod("getCallableAlleles", "PGx", function(x) {
-  grl <- extractHaplotypeRanges(x)
+#' @rdname determineCallableAlleles
+#' @return PGx object with pgxCallableAlleles slot filled
+setMethod("determineCallableAlleles", "PGx", function(x) {
+  grl <- .extractHaplotypeRanges(x)
   q <- SummarizedExperiment::rowRanges(x)
   callable <- lapply(grl, function(x) .isCallable(q, s = x))
   callable <- Filter(Negate(is.null), callable)
   stopifnot("There are no callable alleles" = length(callable) >= 1)
-  callableAlleles(x) <- names(callable)
+  pgxCallableAlleles(x) <- names(callable)
 
   return(x)
 })
 
 #' Build the reference data frame from the callable allele positions
-#' 
-#' The reference data.frame consists of rows for all positions present in the 
-#' sample VCF and columns for every callable allele haplotype. Since not all 
-#' positions are present in every haplotype, missing positions for each 
+#'
+#' The reference data.frame consists of rows for all positions present in the
+#' sample VCF and columns for every callable allele haplotype. Since not all
+#' positions are present in every haplotype, missing positions for each
 #' haplotype are filled in with reference bases.
 #' @export
 #' @rdname buildReferenceDataframe
 #' @return data.frame containing haplotype definitions
 setMethod("buildReferenceDataframe", "PGx", function(x) {
-    stopifnot("There are no callable alleles" = callableAlleles(x) != "")
-    
-    grl <- lapply(callableAlleles(x), availableHaplotypeRanges, build = pgxBuild(x))
-    names(grl) <- callableAlleles(x)
-    
-    rr <- SummarizedExperiment::rowRanges(x)
-    df <- data.frame(REF = rr$REF, row.names = names(rr))
-    
-    for (i in seq_along(grl)) {
-        idx <- SummarizedExperiment::match(grl[[i]], rr)
-        alts <- VariantAnnotation::alt(grl[[i]])
-        col <- names(grl)[i]
-        df[idx, col] <- alts   
+  stopifnot("There are no callable alleles" = pgxCallableAlleles(x) != "")
+
+  grl <- lapply(pgxCallableAlleles(x), availableHaplotypeRanges, build = pgxBuild(x))
+  names(grl) <- pgxCallableAlleles(x)
+
+  rr <- SummarizedExperiment::rowRanges(x)
+  df <- data.frame(REF = rr$REF, row.names = names(rr))
+
+  for (i in seq_along(grl)) {
+    idx <- SummarizedExperiment::match(grl[[i]], rr)
+    alts <- VariantAnnotation::alt(grl[[i]])
+    col <- names(grl)[i]
+    df[idx, col] <- alts
+  }
+
+  df[] <- lapply(df, function(x) data.table::fcoalesce(x, df$REF))
+  df$REF <- NULL
+  pgxReferenceDataframe(x) <- df
+
+  return(x)
+})
+
+#' Convert genotype calls to nucleotides
+#'
+#' @export
+#' @rdname convertGTtoNucleotides
+#' @return PGx object with geno(x)$GT converted to nucleotide representation
+setMethod("convertGTtoNucleotides", "PGx", function(x) {
+  REF <- VariantAnnotation::ref(x)
+  ALT <- VariantAnnotation::alt(x)
+  geno2 <- geno <- VariantAnnotation::geno(x)$GT
+
+  for (i in 1:nrow(geno)) {
+    geno2[i, ] <- gsub("0", as.character(REF[i]), geno[i, ])
+    for (j in 1:S4Vectors::elementNROWS(ALT[i])) {
+      geno2[i, ] <- gsub(
+        as.character(j),
+        as.character(ALT[[i]][j]),
+        geno2[i, ]
+      )
     }
-    
-    df[] <- lapply(df, function(x) data.table::fcoalesce(x, df$REF))
-    pgxReferenceDataframe(x) <- df
-    
-    return(x)
+  }
+  geno(x)$GT <- geno2
+
+  return(x)
 })
 
-#' Taken from:
-#' https://github.com/Bioconductor/VariantAnnotation/blob/54d2de6c7a1aa76f404076db79077cd05114edf2/R/methods-readVcf.R
-.geno2geno <- function(lst, ALT = NULL, REF = NULL, GT = NULL) {
-  if (is.null(ALT) && is.null(REF) && is.null(GT)) {
-    ALT <- lst$ALT
-    REF <- as.character(lst$REF, use.names = FALSE)
-    GT <- lst$GENO$GT
-  }
-  res <- GT
-  ## ignore records with GT ".|."
-  if (any(missing <- grepl(".", GT, fixed = TRUE))) {
-    GT[missing] <- ".|."
-  }
-  phasing <- rep("|", length(GT))
-  phasing[grepl("/", GT, fixed = TRUE)] <- "/"
+#' Extract haplotype strings for a vector of genotype strings
+.getHaplotypes <- function(x, sep = "|") {
+  ss <- strsplit(x, sep, fixed = TRUE)
+  h1 <- vapply(ss, function(x) x[1], FUN.VALUE = character(1))
+  h2 <- vapply(ss, function(x) x[2], FUN.VALUE = character(1))
+  l <- list(H1 = h1, H2 = h2)
 
-  ## replace
-  GTstr <- strsplit(as.vector(GT), "[|,/]")
-  if (any(elementNROWS(GTstr) != 2)) {
-    stop("only diploid variants are supported")
-  }
-  GTmat <- matrix(unlist(GTstr), ncol = 2, byrow = TRUE)
-  GTA <- suppressWarnings(as.numeric(GTmat[, 1]))
-  GTB <- suppressWarnings(as.numeric(GTmat[, 2]))
-
-  REFcs <- cumsum(elementNROWS(REF))
-  ALTcs <- cumsum(elementNROWS(ALT))
-  cs <- REFcs + c(0, head(ALTcs, -1))
-  offset <- rep(cs, ncol(res))
-  alleles <- unlist(rbind(REF, ALT), use.names = FALSE)
-
-  alleleA <- alleles[offset + GTA]
-  alleleB <- alleles[offset + GTB]
-  if (any(missing)) {
-    res[!missing] <- paste0(
-      alleleA[!missing],
-      phasing[!missing],
-      alleleB[!missing]
-    )
-  } else {
-    res[] <- paste0(alleleA, phasing, alleleB)
-  }
-  res
+  return(l)
 }
 
-#' Converts the 'GT' genotype code in a PGx object to nucleotides
-#'
-#' Modified from: #' https://github.com/Bioconductor/VariantAnnotation/blob/54d2de6c7a1aa76f404076db79077cd05114edf2/R/methods-VCF-class.R
-#' This method differs in that it uses the REF and ALT columns from the PGx
-#' haplotype definitions instead of the ALT and REF from the sample VCF and
-#' requires that a specific callable allele be used. This method returns a
-#' PGx object that is subsetted by the defined allele, i.e. the input PGx object
-#' is not the same dimensions as the returned PGx object
-#' @export
-#' @rdname pgxGenotypeCodesToNucleotides
-#' @return subsetted PGx object with geno(PGx)$GT converted to nucleotides
-setMethod("pgxGenotypeCodesToNucleotides", "PGx", function(x, allele, ...) {
-  # Extract the PGx definition for the given allele
-  if (!allele %in% callableAlleles(x)) {
-    stop("allele must be one of callableAlleles(x)")
+#' Convert the Boolean calls to a star alleles
+.boolToStar <- function(x) {
+  idx <- which(x == TRUE)
+  if (length(idx) > 0) {
+    calls <- names(x[idx])
+    calls <- regmatches(calls, regexpr("\\*[0-9]+$", calls))
+    return(calls)
   }
-  def_gr <- availableHaplotypeRanges(allele, build = pgxBuild(x))
 
-  # Subset the original PGx object for only the ranges in the definition
-  p <- IRanges::subsetByOverlaps(x, def_gr, type = "equal")
-  
-  # Reorder the definition ranges to match the PGx ranges
-  def_gr <- def_gr[GenomicRanges::match(SummarizedExperiment::rowRanges(p), def_gr), ]
-  def_alt <- Biostrings::DNAStringSetList(as.list(def_gr$`Variant Allele`))
-  def_ref <- def_gr$`Reference Allele`
-
-  # Convert
-  GT <- VariantAnnotation::geno(p)$GT
-  ALT <- as.list(S4Vectors::splitAsList(
-    as.character(def_alt@unlistData),
-    IRanges::togroup(PartitioningByWidth(def_alt))
-  ))
-  REF <- as.character(def_ref)
-  converted <- .geno2geno(NULL, ALT, REF, GT)
-  VariantAnnotation::geno(p)$GT <- converted
-  callableAlleles(p) <- allele
-
-  return(p)
-})
-
-#' Extracts star allele e.g. CYP2D6_12 -> *12
-.extractStarAllele <- function(allele) {
-  star <- regmatches(allele, regexpr("\\*[0-9]+$", allele))
-
-  return(star)
+  # Default to reference if not matches
+  return("*1")
 }
 
-#' Call the phased diplotype for a single sample (column) of the genotype matrix
-.callSamplePhasedDiplotype <- function(x, allele, REF, ALT) {
-  star <- .extractStarAllele(allele)
-
-  gts <- strsplit(x, "|", fixed = TRUE)
-  h1 <- unlist(lapply(gts, function(x) x[1]))
-  h2 <- unlist(lapply(gts, function(x) x[2]))
-  hm <- rbind(h1, h2)
-
-  call1 <- "*1"
-  call2 <- "*1"
-  if (all(hm[1, ] == ALT))
-      call1 <- star
-  if (all(hm[2, ] == ALT)) 
-      call2 <- star
-
-  call_string <- paste0(call1, "|", call2)
-  
-  return(call_string)
-}
-
-#' Call the phased diplotypes for all samples in the PGx object
-#'
-#' Returns a DataFrame of allele calls for every sample in the single allele PGx
-#' object.
-#' @export
-#' @rdname callPhasedDiplotype
-#' @return DataFrame with allele calls for every sample in PGx
-setMethod("callPhasedDiplotype", "PGx", function(x) {
-  if (length(callableAlleles(x)) != 1 & callableAlleles(x) != "") {
-    stop("Only a single allele can be called with this method. Run pgxGenotypeCodesToNucleotides(x, allele)")
-  }
-  allele <- callableAlleles(x)
-  allele_gr <- availableHaplotypeRanges(allele, build = pgxBuild(x))
-  allele_gr <- allele_gr[GenomicRanges::match(SummarizedExperiment::rowRanges(x), allele_gr), ]
-  def_ref <- allele_gr$`Reference Allele`
-  def_alt <- allele_gr$`Variant Allele`
-  
-  # Special case for nested CYP2C19*35 in CYP2C19*2
-  if (allele == "CYP2C19*35")
-      def_alt <- allele_gr$`Variant Allele2`
-  
-  # Special case for CYP2C9*8 and CYP2C9*27 -- use ALT defined by sample VCF
-  if (allele == "CYP2C9*8" || allele == "CYP2C9*27")
-      def_alt <- alt(x)
-
-  gt <- geno(x)$GT
-  lst <- asplit(gt, MARGIN = 2)
-  calls <- lapply(lst, .callSamplePhasedDiplotype, allele = allele, REF = def_ref, ALT = def_alt)
-  DF <- S4Vectors::DataFrame(Call = unlist(calls), row.names = names(calls))
-  colnames(DF) <- allele
-
-  return(DF)
-})
-
-#' Call phased diplotypes for all samples and callable alleles of a PGx object
-#'
+#' Call diplotypes from phased genotype data
+#' 
+#' Determine star allele calls by matching observed haplotype calls to the 
+#' reference definitions for each sample in the PGx object. Diplotype calls are 
+#' determined by extracting the haplotype call string for each sample and 
+#' matching it against each column of the \code{pgxReferenceDataframe(x)}. Only 
+#' exact matches are reported as calls for a particular star allele. A final 
+#' diplotype string is then created by concatenating haplotype calls from each
+#' allele. The final output is a data.frame with rownames for each sample in the
+#' PGx object and the phased diplotype calls.
 #' @export
 #' @rdname callPhasedDiplotypes
-#' @return DataFrame containing allele calls for all samples of the PGx object
-#' for each callable allele
+#' @return data.frame of diplotype calls for each sample in the PGx object
 setMethod("callPhasedDiplotypes", "PGx", function(x) {
-  x <- getCallableAlleles(x)
-  alleles <- callableAlleles(x)
-  stopifnot("No callable alleles!" = length(alleles) >= 1 & alleles[1] != "")
-  pgx_objs <- lapply(alleles, function(allele) pgxGenotypeCodesToNucleotides(x, allele))
-  dfs <- lapply(pgx_objs, callPhasedDiplotype)
-  DF <- do.call(cbind, dfs)
+  # Extract the converted genotype matrix from the PGx object
+  GT <- geno(x)$GT
 
-  return(DF)
+  # Split the GT matrix by Samples
+  gt_by_sample <- asplit(GT, 2)
+
+  # Extract the haplotype calls per sample
+  haplotypes_by_sample <- lapply(gt_by_sample, .getHaplotypes)
+
+  # Populate separate call matrices for each observed haplotype
+  df <- pgxReferenceDataframe(x)
+  call1 <- matrix(data = FALSE, nrow = length(haplotypes_by_sample), ncol = ncol(df))
+  call2 <- matrix(data = FALSE, nrow = length(haplotypes_by_sample), ncol = ncol(df))
+  dimnames(call1) <- dimnames(call2) <- list(colnames(x), colnames(df))
+
+  # Match extracted calls to definitions for each sample
+  for (i in seq_along(haplotypes_by_sample)) {  # each sample
+    H1 <- haplotypes_by_sample[[i]]$H1
+    H2 <- haplotypes_by_sample[[i]]$H2
+    for (j in seq_along(df)) {                  # each haplotype definition
+      definition <- df[, j]
+      if (all(H1 == definition)) {
+        call1[i, j] <- TRUE
+      }
+      if (all(H2 == definition)) {
+        call2[i, j] <- TRUE
+      }
+    }
+  }
+
+  # Create star allele calls for every sample
+  star1 <- apply(call1, 1, .boolToStar, simplify = TRUE)
+  star2 <- apply(call2, 1, .boolToStar, simplify = TRUE)
+
+  # bind all results into a data.frame
+  result <- data.frame(
+    row.names = names(star1),
+    Call = paste(star1, star2, sep = "|")
+  )
+
+  # Rename the "Call" column as the gene name
+  colnames(result) <- pgxGene(x)
+
+  return(result)
 })

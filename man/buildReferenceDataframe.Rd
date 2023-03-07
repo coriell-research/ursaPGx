@@ -10,8 +10,8 @@
 data.frame containing haplotype definitions
 }
 \description{
-The reference data.frame consists of rows for all positions present in the 
-sample VCF and columns for every callable allele haplotype. Since not all 
-positions are present in every haplotype, missing positions for each 
+The reference data.frame consists of rows for all positions present in the
+sample VCF and columns for every callable allele haplotype. Since not all
+positions are present in every haplotype, missing positions for each
 haplotype are filled in with reference bases.
 }

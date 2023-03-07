@@ -5,13 +5,13 @@ setGeneric("pgxGene", function(x) standardGeneric("pgxGene"))
 setGeneric("pgxBuild", function(x) standardGeneric("pgxBuild"))
 
 #' @export
-setGeneric("callableAlleles", function(x) standardGeneric("callableAlleles"))
+setGeneric("pgxCallableAlleles", function(x) standardGeneric("pgxCallableAlleles"))
 
 #' @export
-setGeneric("callableAlleles<-", function(x, ..., value) standardGeneric("callableAlleles<-"))
+setGeneric("pgxCallableAlleles<-", function(x, ..., value) standardGeneric("pgxCallableAlleles<-"))
 
 #' @export
-setGeneric("getCallableAlleles", function(x) standardGeneric("getCallableAlleles"))
+setGeneric("determineCallableAlleles", function(x) standardGeneric("determineCallableAlleles"))
 
 #' @export
 setGeneric("pgxReferenceDataframe", function(x) standardGeneric("pgxReferenceDataframe"))
@@ -23,13 +23,10 @@ setGeneric("pgxReferenceDataframe<-", function(x, ..., value) standardGeneric("p
 setGeneric("buildReferenceDataframe", function(x) standardGeneric("buildReferenceDataframe"))
 
 #' @export
-setGeneric("extractHaplotypeRanges", function(x) standardGeneric("extractHaplotypeRanges"))
+setGeneric("convertGTtoNucleotides", function(x) standardGeneric("convertGTtoNucleotides"))
 
 #' @export
-setGeneric("pgxGenotypeCodesToNucleotides", function(x, allele, ...) standardGeneric("pgxGenotypeCodesToNucleotides"))
-
-#' @export
-setGeneric("callPhasedDiplotype", function(x) standardGeneric("callPhasedDiplotype"))
+setGeneric("convertGTtoNucleotides<-", function(x, ..., value) standardGeneric("convertGTtoNucleotides<-"))
 
 #' @export
 setGeneric("callPhasedDiplotypes", function(x) standardGeneric("callPhasedDiplotypes"))

@@ -2,14 +2,20 @@
 % Please edit documentation in R/PGx-methods.R
 \name{callPhasedDiplotypes,PGx-method}
 \alias{callPhasedDiplotypes,PGx-method}
-\title{Call phased diplotypes for all samples and callable alleles of a PGx object}
+\title{Call diplotypes from phased genotype data}
 \usage{
 \S4method{callPhasedDiplotypes}{PGx}(x)
 }
 \value{
-DataFrame containing allele calls for all samples of the PGx object
-for each callable allele
+data.frame of diplotype calls for each sample in the PGx object
 }
 \description{
-Call phased diplotypes for all samples and callable alleles of a PGx object
+Determine star allele calls by matching observed haplotype calls to the 
+reference definitions for each sample in the PGx object. Diplotype calls are 
+determined by extracting the haplotype call string for each sample and 
+matching it against each column of the \code{pgxReferenceDataframe(x)}. Only 
+exact matches are reported as calls for a particular star allele. A final 
+diplotype string is then created by concatenating haplotype calls from each
+allele. The final output is a data.frame with rownames for each sample in the
+PGx object and the phased diplotype calls.
 }

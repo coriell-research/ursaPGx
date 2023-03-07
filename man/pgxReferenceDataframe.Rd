@@ -10,6 +10,6 @@
 data.frame of positions by callable haplotypes
 }
 \description{
-The pgxReferenceDataframe contains the expanded reference strings for every 
+The pgxReferenceDataframe contains the expanded reference strings for every
 callable allele of the PGx object
 }
