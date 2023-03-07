@@ -63,7 +63,7 @@ availableGeneRanges <- function(gene, build = "GRCh38") {
       seqinfo = seqinfo(uniq)
       )
   names(gr) <- NULL
-  gr
+  unique(gr)
 }
 
 #' Return a VRanges object of the unique ranges for the given haplotype
