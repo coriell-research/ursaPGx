@@ -3,13 +3,16 @@
 The goal of this package is to use phased VCF data to assign star alleles to
 samples using existing frameworks from the
 [Bioconductor](https://www.bioconductor.org/) ecosystem and
-[PharmVar](https://www.pharmvar.org) database.
+[PharmVar](https://www.pharmvar.org) database. This package is purpose-built for
+annotating the 1000 genomes 30X phased VCF call sets from the NYGC.
 
 ## Data Sources
 
 Reference alleles and haplotype definitions are extracted from the most recent
 version of [PharmVar](https://www.pharmvar.org/download). See the
 `create-reference.R` function in the data-raw directory for the exact script.
+
+The current version of the reference haplotypes from PharmVar is: **Version 5.2.13**
 
 ## Installation
 
@@ -25,94 +28,33 @@ BiocManager::install("VariantAnnotation")
 devtools::install_github("coriell-research/ursaPGx")
 ```
 
-## Example Usage
+## Example Analysis
 
-The simplest use case (and currently the only implemented usage) is for calling
-phased diplotypes. Below, we read in the VCF file as a `PGx` object and call
-the wrapper method `callPhasedDiplotypes()` on it. The result is a `DataFrame`
-with a row for every sample in the VCF and a column for every callable defined
-allele.
-
-``` r
-library(ursaPGx)
-
-
-# Use 1kGP VCF file as example (.tbi index must be located in same directory)
+```
+# Specify the path the the VCF object
 vcf <- "1kGP_high_coverage_Illumina.chr10.filtered.SNV_INDEL_SV_phased_panel.vcf.gz"
 
-# Read in PGx data for CYP2C8
-p <- readPGx(vcf, "CYP2C8")
+# Read in the VCF data as a PGx object for CYP2C19
+CYP2C19 <- readPGx(vcf, gene = "CYP2C19")
 
-# Run the phased diplotype caller pipeline for CYP2C8
-df <- callPhasedDiplotypes(p)
+# Determine what alleles can be called from the data
+CYP2C19 <- determineCallableAlleles(CYP2C19)
 
-# Summarize the calls for each sample
-sdf <- summarizeDiplotypeCalls(df) 
-```
+# Create a reference of all positions from the callable alleles 
+CYP2C19 <- buildReferenceDataframe(CYP2C19)
 
-The `callPhasedDiplotypes()` method is a wrapper around several functions
-useful for generating diplotype calls for all defined alleles. If you wish to
-examine all individual steps of the pipeline that can be done like so:
+# Convert the genotype code to nucleotides
+CYP2C19 <- convertGTtoNucleotides(CYP2C19)
 
-``` r
-# 1. Determine which of the defined alleles are fully represented in the sample VCF
-p <- getCallableAlleles(p)
+# Create diplotype calls for every sample
+result <- callPhasedDiplotypes(CYP2C19)
+head(result)
 
-# Use the getter method on the PGx object to retreive the full list
-callableAlleles(p)
-
-# For each callable allele, convert the genotype matrix to nucleotides
-# Only CYP2C8*3 is shown below
-p3 <- pgxGenotypeCodesToNucleotides(p, "CYP2C8*3")
-
-# 3. Generate CYP2C8*11 allele calls for all samples
-df3 <- callPhasedDiplotype(p3)
-
-# 4. Summarize calls per sample
-sdf3 <-  summarizeDiplotypeCalls(df3) 
-```
-
-## Accessing the definitions
-
-Allele definitions are downloaded from [PharmVar](https://www.pharmvar.org) and 
-converted into `GRanges` objects. The user can access all of the allele 
-definitions with the following functions:
-
-``` r
-# List all available PGx genes with definitions
-availableGenes()
-
-# List all available star alleles with definitions
-availableHaplotypes()
-
-# Access the GRanges for a given gene
-availableGeneRanges("CYP2C8")
-
-# Access GRanges for the given the star allele
-availableHaplotypeRanges("CYP2C8*3")
-```
-
-## Working with the `PGx` object
-
-`PGx` objects inherit from `VariantAnnotation::VCF` object so anything you can
-do with a `VCF` object you can do with a `PGx` object. See the
-[VariantAnnotation documentation](https://bioconductor.org/packages/release/bioc/html/VariantAnnotation.html)
-for more details.
-
-``` r
-# Contains all sample-level data
-colData(PGx)
-
-# Contains information about the genomic positions
-rowRanges(PGx)
-
-# Converts the genotype calls into a matrix
-gt <- geno(PGx)$GT
-
-# Subsets the PGx object by the CYP2C8*3 defined positions
-cyp2c8_3 <- subsetByOverlaps(
-    p, 
-    availableHaplotypeRanges("CYP2C8_3"), 
-    type = "equal"
-    )
+>        CYP2C19
+>HG00096   *2|*1
+>HG00097   *1|*1
+>HG00099  *17|*1
+>HG00100   *1|*1
+>HG00101   *1|*1
+>HG00102  *17|*1
 ```
