@@ -7,13 +7,13 @@
 \S4method{callPhasedDiplotypes}{PGx}(x)
 }
 \value{
-data.frame of diplotype calls for each sample in the PGx object
+DataFrame of diplotype calls for each sample in the PGx object
 }
 \description{
 Determine star allele calls by matching observed haplotype calls to the 
 reference definitions for each sample in the PGx object. Diplotype calls are 
 determined by extracting the haplotype call string for each sample and 
-matching it against each column of the \code{pgxReferenceDataframe(x)}. Only 
+matching it against each column of the \code{pgxReferenceDataFrame(x)}. Only 
 exact matches are reported as calls for a particular star allele. A final 
 diplotype string is then created by concatenating haplotype calls from each
 allele. The final output is a data.frame with rownames for each sample in the
