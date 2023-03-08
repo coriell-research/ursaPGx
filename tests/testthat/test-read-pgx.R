@@ -1,7 +1,7 @@
 test_that("Stop conditions catch errors on readPGx", {
   file <- here::here("data-raw", "sample_vcf", "1kGP_high_coverage_Illumina.chr1.filtered.SNV_INDEL_SV_phased_panel.vcf.gz")
   expect_error(readPGx(file, gene = "PTEN"), "Gene not in gene list")
-  expect_error(readPGx(file, gene = "CYP2D6", build = "T2T"), "Genome not available")
+  expect_error(readPGx(file, gene = "CYP2D6", build = "T2T"), "Genome must be one of 'GRCh38' or 'GRCh37'")
   expect_error(readPGx(file, gene = c("CYP2D6", "DPYD")), "Multple genes supplied to function")
 })
 
