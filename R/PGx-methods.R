@@ -134,7 +134,7 @@ setMethod("buildReferenceDataFrame", "PGx", function(x) {
     col <- names(grl)[i]
     df[idx, col] <- alts
   }
-  
+
   coalesce <- function(x, y) ifelse(is.na(x), y, x)
   df[] <- lapply(df, function(x) coalesce(x, df$REF))
   df$REF <- NULL
@@ -184,6 +184,7 @@ setMethod("convertGTtoNucleotides", "PGx", function(x) {
   if (length(idx) > 0) {
     calls <- names(x[idx])
     calls <- regmatches(calls, regexpr("\\*[0-9]+$", calls))
+    calls <- paste(calls, sep = "")
     return(calls)
   }
 
@@ -192,12 +193,12 @@ setMethod("convertGTtoNucleotides", "PGx", function(x) {
 }
 
 #' Call diplotypes from phased genotype data
-#' 
-#' Determine star allele calls by matching observed haplotype calls to the 
-#' reference definitions for each sample in the PGx object. Diplotype calls are 
-#' determined by extracting the haplotype call string for each sample and 
-#' matching it against each column of the \code{pgxReferenceDataFrame(x)}. Only 
-#' exact matches are reported as calls for a particular star allele. A final 
+#'
+#' Determine star allele calls by matching observed haplotype calls to the
+#' reference definitions for each sample in the PGx object. Diplotype calls are
+#' determined by extracting the haplotype call string for each sample and
+#' matching it against each column of the \code{pgxReferenceDataFrame(x)}. Only
+#' exact matches are reported as calls for a particular star allele. A final
 #' diplotype string is then created by concatenating haplotype calls from each
 #' allele. The final output is a data.frame with rownames for each sample in the
 #' PGx object and the phased diplotype calls.
@@ -205,47 +206,42 @@ setMethod("convertGTtoNucleotides", "PGx", function(x) {
 #' @rdname callPhasedDiplotypes
 #' @return DataFrame of diplotype calls for each sample in the PGx object
 setMethod("callPhasedDiplotypes", "PGx", function(x) {
-  # Extract the converted genotype matrix from the PGx object
-  GT <- geno(x)$GT
+  # Extract the nucleotide-converted genotype matrix
+  GT <- VariantAnnotation::geno(x)$GT
+  if (!grepl("[ACGT]", GT[1, 1]))
+    stop("Genotype matrix has not been converted to nucleotides. Run `x <- convertGTtoNucleotides(x)` before calling diplotypes")
 
-  # Split the GT matrix by Samples
+  # Split the genotype matrix by Samples (columns)
   gt_by_sample <- asplit(GT, 2)
 
-  # Extract the haplotype calls per sample
+  # For each Sample, split observed GTs into separate haplotypes
   haplotypes_by_sample <- lapply(gt_by_sample, .getHaplotypes)
 
-  # Populate separate call matrices for each observed haplotype
   df <- pgxReferenceDataFrame(x)
-  call1 <- matrix(data = FALSE, nrow = length(haplotypes_by_sample), ncol = ncol(df))
-  call2 <- matrix(data = FALSE, nrow = length(haplotypes_by_sample), ncol = ncol(df))
-  dimnames(call1) <- dimnames(call2) <- list(colnames(x), colnames(df))
+  m <- as.matrix(df)
+  call1 <- vector("list", ncol(df))
+  call2 <- vector("list", ncol(df))
 
-  # Match extracted calls to definitions for each sample
   for (i in seq_along(haplotypes_by_sample)) {  # each sample
     H1 <- haplotypes_by_sample[[i]]$H1
     H2 <- haplotypes_by_sample[[i]]$H2
-    for (j in seq_along(df)) {                  # each haplotype definition
-      definition <- df[, j, drop = TRUE]
-      if (all(H1 == definition)) {
-        call1[i, j] <- TRUE
-      }
-      if (all(H2 == definition)) {
-        call2[i, j] <- TRUE
-      }
-    }
+
+    # Test for matches at every position
+    m1 <- H1 == m
+    m2 <- H2 == m
+
+    # See if any alleles (columns of match matrix) completely match definition
+    c1 <- apply(m1, 2, function(x) all(x == TRUE))
+    c2 <- apply(m2, 2, function(x) all(x == TRUE))
+
+    call1[[i]] <- c1
+    call2[[i]] <- c2
   }
 
-  # Create star allele calls for every sample
-  star1 <- apply(call1, 1, .boolToStar, simplify = TRUE)
-  star2 <- apply(call2, 1, .boolToStar, simplify = TRUE)
-
-  # bind all results into a DataFrame
-  result <- DataFrame(
-    row.names = names(star1),
-    Call = paste(star1, star2, sep = "|")
-  )
-
-  # Rename the "Call" column as the gene name
+  star1 <- lapply(call1, .boolToStar)
+  star2 <- lapply(call2, .boolToStar)
+  allele <- paste(star1, star2, sep = "|")
+  result <- S4Vectors::DataFrame(Call = allele, row.names = colnames(x))
   colnames(result) <- pgxGene(x)
 
   return(result)
