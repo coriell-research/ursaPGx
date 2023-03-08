@@ -41,7 +41,7 @@ CYP2C19 <- readPGx(vcf, gene = "CYP2C19")
 CYP2C19 <- determineCallableAlleles(CYP2C19)
 
 # Create a reference of all positions from the callable alleles 
-CYP2C19 <- buildReferenceDataframe(CYP2C19)
+CYP2C19 <- buildReferenceDataFrame(CYP2C19)
 
 # Convert the genotype code to nucleotides
 CYP2C19 <- convertGTtoNucleotides(CYP2C19)
