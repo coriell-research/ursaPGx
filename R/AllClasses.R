@@ -18,7 +18,7 @@
     pgxGene = "character",
     pgxBuild = "character",
     pgxCallableAlleles = "character",
-    pgxReferenceDataframe = "data.frame"
+    pgxReferenceDataFrame = "DFrame"
   ),
   contains = "CollapsedVCF"
 )
@@ -27,9 +27,9 @@
 #' @importFrom GenomicRanges GRanges
 #' @importClassesFrom VariantAnnotation VCF
 PGx <- function(vcf = VCF(collapsed = TRUE), pgxBuild = "", pgxGene = "",
-                pgxCallableAlleles = "", pgxReferenceDataframe = data.frame()) {
+                pgxCallableAlleles = "", pgxReferenceDataFrame = S4Vectors::DataFrame()) {
   .PGx(vcf, pgxGene = pgxGene, pgxBuild = pgxBuild, pgxCallableAlleles = pgxCallableAlleles,
-       pgxReferenceDataframe = pgxReferenceDataframe)
+       pgxReferenceDataFrame = pgxReferenceDataFrame)
 }
 
 setValidity("PGx", function(object) {

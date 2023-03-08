@@ -14,13 +14,13 @@ setGeneric("pgxCallableAlleles<-", function(x, ..., value) standardGeneric("pgxC
 setGeneric("determineCallableAlleles", function(x) standardGeneric("determineCallableAlleles"))
 
 #' @export
-setGeneric("pgxReferenceDataframe", function(x) standardGeneric("pgxReferenceDataframe"))
+setGeneric("pgxReferenceDataFrame", function(x) standardGeneric("pgxReferenceDataFrame"))
 
 #' @export
-setGeneric("pgxReferenceDataframe<-", function(x, ..., value) standardGeneric("pgxReferenceDataframe<-"))
+setGeneric("pgxReferenceDataFrame<-", function(x, ..., value) standardGeneric("pgxReferenceDataFrame<-"))
 
 #' @export
-setGeneric("buildReferenceDataframe", function(x) standardGeneric("buildReferenceDataframe"))
+setGeneric("buildReferenceDataFrame", function(x) standardGeneric("buildReferenceDataFrame"))
 
 #' @export
 setGeneric("convertGTtoNucleotides", function(x) standardGeneric("convertGTtoNucleotides"))
