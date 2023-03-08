@@ -225,7 +225,7 @@ setMethod("callPhasedDiplotypes", "PGx", function(x) {
     H1 <- haplotypes_by_sample[[i]]$H1
     H2 <- haplotypes_by_sample[[i]]$H2
     for (j in seq_along(df)) {                  # each haplotype definition
-      definition <- df[, j]
+      definition <- df[, j, drop = TRUE]
       if (all(H1 == definition)) {
         call1[i, j] <- TRUE
       }
