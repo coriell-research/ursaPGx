@@ -56,20 +56,20 @@ setReplaceMethod("pgxCallableAlleles", "PGx", function(x, value) {
   x
 })
 
-#' Getter method for pgxReferenceDataframe slot of a PGx object
+#' Getter method for pgxReferenceDataFrame slot of a PGx object
 #'
-#' The pgxReferenceDataframe contains the expanded reference strings for every
+#' The pgxReferenceDataFrame contains the expanded reference strings for every
 #' callable allele of the PGx object
 #' @export
-#' @rdname pgxReferenceDataframe
+#' @rdname pgxReferenceDataFrame
 #' @return data.frame of positions by callable haplotypes
-setMethod("pgxReferenceDataframe", "PGx", function(x) x@pgxReferenceDataframe)
+setMethod("pgxReferenceDataFrame", "PGx", function(x) x@pgxReferenceDataFrame)
 
-#' Setter method for pgxReferenceDataframe slot of PGx object
+#' Setter method for pgxReferenceDataFrame slot of PGx object
 #'
 #' @export
-setReplaceMethod("pgxReferenceDataframe", "PGx", function(x, value) {
-  x@pgxReferenceDataframe <- value
+setReplaceMethod("pgxReferenceDataFrame", "PGx", function(x, value) {
+  x@pgxReferenceDataFrame <- value
   validObject(x)
   x
 })
@@ -86,7 +86,7 @@ setReplaceMethod("pgxReferenceDataframe", "PGx", function(x, value) {
 #' Determine if one set of ranges completely encompasses another
 .isCallable <- function(q, s) {
   ov <- IRanges::subsetByOverlaps(q, s, type = "equal")
-  if (length(ov) == length(s)) {
+  if (length(unique(ov)) == length(s)) {
     return(ov)
   }
 }
@@ -101,8 +101,8 @@ setReplaceMethod("pgxReferenceDataframe", "PGx", function(x, value) {
 #' @return PGx object with pgxCallableAlleles slot filled
 setMethod("determineCallableAlleles", "PGx", function(x) {
   grl <- .extractHaplotypeRanges(x)
-  q <- SummarizedExperiment::rowRanges(x)
-  callable <- lapply(grl, function(x) .isCallable(q, s = x))
+  rr <- SummarizedExperiment::rowRanges(x)
+  callable <- lapply(grl, function(x) .isCallable(rr, x))
   callable <- Filter(Negate(is.null), callable)
   stopifnot("There are no callable alleles" = length(callable) >= 1)
   pgxCallableAlleles(x) <- names(callable)
@@ -117,16 +117,16 @@ setMethod("determineCallableAlleles", "PGx", function(x) {
 #' positions are present in every haplotype, missing positions for each
 #' haplotype are filled in with reference bases.
 #' @export
-#' @rdname buildReferenceDataframe
-#' @return data.frame containing haplotype definitions
-setMethod("buildReferenceDataframe", "PGx", function(x) {
+#' @rdname buildReferenceDataFrame
+#' @return DataFrame containing haplotype definitions
+setMethod("buildReferenceDataFrame", "PGx", function(x) {
   stopifnot("There are no callable alleles" = pgxCallableAlleles(x) != "")
 
   grl <- lapply(pgxCallableAlleles(x), availableHaplotypeRanges, build = pgxBuild(x))
   names(grl) <- pgxCallableAlleles(x)
 
   rr <- SummarizedExperiment::rowRanges(x)
-  df <- data.frame(REF = rr$REF, row.names = names(rr))
+  df <- S4Vectors::DataFrame(REF = rr$REF, row.names = names(rr))
 
   for (i in seq_along(grl)) {
     idx <- SummarizedExperiment::match(grl[[i]], rr)
@@ -134,10 +134,11 @@ setMethod("buildReferenceDataframe", "PGx", function(x) {
     col <- names(grl)[i]
     df[idx, col] <- alts
   }
-
-  df[] <- lapply(df, function(x) data.table::fcoalesce(x, df$REF))
+  
+  coalesce <- function(x, y) ifelse(is.na(x), y, x)
+  df[] <- lapply(df, function(x) coalesce(x, df$REF))
   df$REF <- NULL
-  pgxReferenceDataframe(x) <- df
+  pgxReferenceDataFrame(x) <- df
 
   return(x)
 })
@@ -195,14 +196,14 @@ setMethod("convertGTtoNucleotides", "PGx", function(x) {
 #' Determine star allele calls by matching observed haplotype calls to the 
 #' reference definitions for each sample in the PGx object. Diplotype calls are 
 #' determined by extracting the haplotype call string for each sample and 
-#' matching it against each column of the \code{pgxReferenceDataframe(x)}. Only 
+#' matching it against each column of the \code{pgxReferenceDataFrame(x)}. Only 
 #' exact matches are reported as calls for a particular star allele. A final 
 #' diplotype string is then created by concatenating haplotype calls from each
 #' allele. The final output is a data.frame with rownames for each sample in the
 #' PGx object and the phased diplotype calls.
 #' @export
 #' @rdname callPhasedDiplotypes
-#' @return data.frame of diplotype calls for each sample in the PGx object
+#' @return DataFrame of diplotype calls for each sample in the PGx object
 setMethod("callPhasedDiplotypes", "PGx", function(x) {
   # Extract the converted genotype matrix from the PGx object
   GT <- geno(x)$GT
@@ -214,7 +215,7 @@ setMethod("callPhasedDiplotypes", "PGx", function(x) {
   haplotypes_by_sample <- lapply(gt_by_sample, .getHaplotypes)
 
   # Populate separate call matrices for each observed haplotype
-  df <- pgxReferenceDataframe(x)
+  df <- pgxReferenceDataFrame(x)
   call1 <- matrix(data = FALSE, nrow = length(haplotypes_by_sample), ncol = ncol(df))
   call2 <- matrix(data = FALSE, nrow = length(haplotypes_by_sample), ncol = ncol(df))
   dimnames(call1) <- dimnames(call2) <- list(colnames(x), colnames(df))
@@ -238,8 +239,8 @@ setMethod("callPhasedDiplotypes", "PGx", function(x) {
   star1 <- apply(call1, 1, .boolToStar, simplify = TRUE)
   star2 <- apply(call2, 1, .boolToStar, simplify = TRUE)
 
-  # bind all results into a data.frame
-  result <- data.frame(
+  # bind all results into a DataFrame
+  result <- DataFrame(
     row.names = names(star1),
     Call = paste(star1, star2, sep = "|")
   )
