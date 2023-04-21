@@ -9,7 +9,7 @@
 The PGx class inherits from \code{\link[VariantAnnotation]{VCF}}. Like the
 \code{CollapsedVCF} class it is expected that users will not create instances
 of the PGx class but instead the PGx class will be created by one of the
-constructor functions, i.e. \code{readPGx}.
+constructor functions, i.e. \code{readPGx()}.
 }
 \section{Slots}{
 
@@ -17,5 +17,9 @@ constructor functions, i.e. \code{readPGx}.
 \item{\code{pgxGene}}{The PGx gene used to construct the PGx object. See \code{pgxGenes()} for available genes.}
 
 \item{\code{pgxBuild}}{The genome build of the PGx object.}
+
+\item{\code{pgxCallableAlleles}}{Character vector of all star alleles that are able to be called}
+
+\item{\code{pgxReferenceDataFrame}}{DataFrame containing reference bases at each position for all callable alleles}
 }}
 

@@ -105,6 +105,7 @@ setMethod("determineCallableAlleles", "PGx", function(x) {
   callable <- lapply(grl, function(x) .isCallable(rr, x))
   callable <- Filter(Negate(is.null), callable)
   stopifnot("There are no callable alleles" = length(callable) >= 1)
+  x@hasCallableAlleles <- TRUE
   pgxCallableAlleles(x) <- names(callable)
 
   return(x)
@@ -120,7 +121,9 @@ setMethod("determineCallableAlleles", "PGx", function(x) {
 #' @rdname buildReferenceDataFrame
 #' @return DataFrame containing haplotype definitions
 setMethod("buildReferenceDataFrame", "PGx", function(x) {
-  stopifnot("There are no callable alleles" = pgxCallableAlleles(x) != "")
+  if (!x@hasCallableAlleles)
+      stop("Callable alleles have not yet been determined. 
+           Please run: `x <- determineCallableAlleles(x)` before attempting to build the reference")
 
   grl <- lapply(pgxCallableAlleles(x), availableHaplotypeRanges, build = pgxBuild(x))
   names(grl) <- pgxCallableAlleles(x)
@@ -138,6 +141,7 @@ setMethod("buildReferenceDataFrame", "PGx", function(x) {
   coalesce <- function(x, y) ifelse(is.na(x), y, x)
   df[] <- lapply(df, function(x) coalesce(x, df$REF))
   df$REF <- NULL
+  x@hasReferenceDataFrame <- TRUE
   pgxReferenceDataFrame(x) <- df
 
   return(x)
@@ -206,10 +210,15 @@ setMethod("convertGTtoNucleotides", "PGx", function(x) {
 #' @rdname callPhasedDiplotypes
 #' @return DataFrame of diplotype calls for each sample in the PGx object
 setMethod("callPhasedDiplotypes", "PGx", function(x) {
+  if (!x@hasReferenceDataFrame)
+      stop("A reference DataFrame has not yet been generated.
+           Please run: `x <- buildReferenceDataFrame(x)` before calling diplotypes")
+    
   # Extract the nucleotide-converted genotype matrix
   GT <- VariantAnnotation::geno(x)$GT
   if (!grepl("[ACGT]", GT[1, 1]))
-    stop("Genotype matrix has not been converted to nucleotides. Run `x <- convertGTtoNucleotides(x)` before calling diplotypes")
+    stop("Genotype matrix has not been converted to nucleotides. 
+         Please run: `x <- convertGTtoNucleotides(x)` before calling diplotypes")
 
   # Split the genotype matrix by Samples (columns)
   gt_by_sample <- asplit(GT, 2)
