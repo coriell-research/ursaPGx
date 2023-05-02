@@ -17,5 +17,7 @@ matching it against each column of the \code{pgxReferenceDataFrame(x)}. Only
 exact matches are reported as calls for a particular star allele. A final
 diplotype string is then created by concatenating haplotype calls from each
 allele. The final output is a data.frame with rownames for each sample in the
-PGx object and the phased diplotype calls.
+PGx object and the phased diplotype calls. If no exact matches are found for 
+any of the callable alleles then the resulting diplotype called is marked as
+ambiguous ("Amb")
 }
