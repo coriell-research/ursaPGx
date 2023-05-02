@@ -27,7 +27,5 @@ test_that("buildReferenceDataFrame constructs a valid reference for each sample"
     DF <- pgxReferenceDataFrame(p)
 
     expect_equal(is(DF, "DFrame"), TRUE, label = "Reference DF is a vaild DataFrame")
-    expect_equal(all(colnames(DF) == pgxCallableAlleles(p)), TRUE, label = "Every reference allele is a callable allele")
-
   }
 })

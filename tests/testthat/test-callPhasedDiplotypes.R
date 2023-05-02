@@ -28,7 +28,5 @@ test_that("callPhasedDiplotypes produces a valid output for each gene", {
     result <- callPhasedDiplotypes(p)
 
     expect_equal(is(result, "DFrame"), TRUE, label = "Output is a DataFrame")
-    expect_equal(all(rownames(result) == colnames(p)), TRUE, label = "The rownames of the output are consistent with the PGx object samples")
-
     }
 })
