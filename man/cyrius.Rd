@@ -4,10 +4,12 @@
 \alias{cyrius}
 \title{Interface to Illumina Cyrius CYP2D6 Star Allele Caller}
 \usage{
-cyrius(bam_files, genome = "hg38", threads = 1)
+cyrius(bam_files, reference, genome = "hg38", threads = 1)
 }
 \arguments{
 \item{bam_files}{Vector of file paths to BAM files.}
+
+\item{reference}{Path to the reference fasta file used in BAM creation.}
 
 \item{genome}{Reference genome. One of c("hg19", "hg37", "hg38"). Default "hg38"}
 
