@@ -22,7 +22,10 @@ readPGx <- function(file, gene, build = "GRCh38") {
   stopifnot("Genome must be one of 'GRCh38' or 'GRCh37'" = build %in% c("GRCh38", "GRCh37"))
   stopifnot("Multple genes supplied to function" = length(gene) == 1)
   stopifnot("Gene not in gene list" = gene %in% availableGenes())
-
+  
+  if (gene == "CYP2D6")
+    stop("Please use `cyrius()` to perform calling for CYP2D6.")
+  
   build <- match.arg(build)
   ref <- switch (build,
     GRCh38 = availableGeneRanges(gene, build = "GRCh38"),
