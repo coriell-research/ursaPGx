@@ -1,8 +1,9 @@
 test_that("Stop conditions catch errors on readPGx", {
   file <- here::here("data-raw", "sample_vcf", "1kGP_high_coverage_Illumina.chr1.filtered.SNV_INDEL_SV_phased_panel.vcf.gz")
   expect_error(readPGx(file, gene = "PTEN"), "Gene not in gene list")
-  expect_error(readPGx(file, gene = "CYP2D6", build = "T2T"), "Genome must be one of 'GRCh38' or 'GRCh37'")
-  expect_error(readPGx(file, gene = c("CYP2D6", "DPYD")), "Multple genes supplied to function")
+  expect_error(readPGx(file, gene = "CYP2C8", build = "T2T"), "Genome must be one of 'GRCh38' or 'GRCh37'")
+  expect_error(readPGx(file, gene = c("CYP2C9", "DPYD")), "Multple genes supplied to function")
+  expect_error(readPGx(file, gene = "CYP2D6"))
 })
 
 test_that("Every 1kg sample can be read in with readPGx", {
@@ -15,10 +16,10 @@ test_that("Every 1kg sample can be read in with readPGx", {
   # Mapping for chromosome to genes
   df <- data.frame(
     chrom = c("chr19", "chr19", "chr19", "chr10", "chr10", "chr10", 
-              "chr22", "chr7", "chr7", "chr19", "chr13", "chr12"
+              "chr7", "chr7", "chr19", "chr13", "chr12"
     ),
     gene = c("CYP2A13", "CYP2A6", "CYP2B6", "CYP2C19", "CYP2C8", "CYP2C9", 
-             "CYP2D6", "CYP3A4", "CYP3A5", "CYP4F2", "NUDT15", "SLCO1B1"
+             "CYP3A4", "CYP3A5", "CYP4F2", "NUDT15", "SLCO1B1"
     )
   )
 

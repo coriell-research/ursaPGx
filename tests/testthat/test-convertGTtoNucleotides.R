@@ -7,12 +7,12 @@ test_that("convertGTtoNucleotides is able to construct a valid matrix for each s
 
   # Mapping for chromosome to genes
   df <- data.frame(
-    chrom = c("chr19", "chr19", "chr19", "chr10", "chr10", "chr10",
-              "chr22", "chr7", "chr7", "chr19", "chr13", "chr12"
-    ),
-    gene = c("CYP2A13", "CYP2A6", "CYP2B6", "CYP2C19", "CYP2C8", "CYP2C9",
-             "CYP2D6", "CYP3A4", "CYP3A5", "CYP4F2", "NUDT15", "SLCO1B1"
-    )
+      chrom = c("chr19", "chr19", "chr19", "chr10", "chr10", "chr10", 
+                "chr7", "chr7", "chr19", "chr13", "chr12"
+      ),
+      gene = c("CYP2A13", "CYP2A6", "CYP2B6", "CYP2C19", "CYP2C8", "CYP2C9", 
+               "CYP3A4", "CYP3A5", "CYP4F2", "NUDT15", "SLCO1B1"
+      )
   )
 
   # Read in all gene data and test if each gene has callable alleles

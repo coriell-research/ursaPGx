@@ -7,11 +7,11 @@ test_that("callableAlleles can be extracted for every sample", {
 
     # Mapping for chromosome to genes
     df <- data.frame(
-        chrom = c("chr19", "chr19", "chr19", "chr10", "chr10", "chr10",
-                  "chr22", "chr7", "chr7", "chr19", "chr13", "chr12"
+        chrom = c("chr19", "chr19", "chr19", "chr10", "chr10", "chr10", 
+                  "chr7", "chr7", "chr19", "chr13", "chr12"
         ),
-        gene = c("CYP2A13", "CYP2A6", "CYP2B6", "CYP2C19", "CYP2C8", "CYP2C9",
-                 "CYP2D6", "CYP3A4", "CYP3A5", "CYP4F2", "NUDT15", "SLCO1B1"
+        gene = c("CYP2A13", "CYP2A6", "CYP2B6", "CYP2C19", "CYP2C8", "CYP2C9", 
+                 "CYP3A4", "CYP3A5", "CYP4F2", "NUDT15", "SLCO1B1"
         )
     )
 
