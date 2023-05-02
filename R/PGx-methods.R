@@ -127,20 +127,26 @@ setMethod("buildReferenceDataFrame", "PGx", function(x) {
 
   grl <- lapply(pgxCallableAlleles(x), availableHaplotypeRanges, build = pgxBuild(x))
   names(grl) <- pgxCallableAlleles(x)
-
   rr <- SummarizedExperiment::rowRanges(x)
   df <- S4Vectors::DataFrame(REF = rr$REF, row.names = names(rr))
 
+  # Fill the df with ALT alleles for each callable allele
   for (i in seq_along(grl)) {
     idx <- SummarizedExperiment::match(grl[[i]], rr)
     alts <- VariantAnnotation::alt(grl[[i]])
     col <- names(grl)[i]
     df[idx, col] <- alts
   }
-
+  
+  # Fill missing positions with reference bases
   coalesce <- function(x, y) ifelse(is.na(x), y, x)
   df[] <- lapply(df, function(x) coalesce(x, df$REF))
-  df$REF <- NULL
+  
+  # Swap 'REF' colname with *1
+  gene_name <- pgxGene(x)
+  star1 <- paste0(gene_name, "*1")
+  names(df)[1] <- star1
+  
   x@hasReferenceDataFrame <- TRUE
   pgxReferenceDataFrame(x) <- df
 
@@ -188,12 +194,12 @@ setMethod("convertGTtoNucleotides", "PGx", function(x) {
   if (length(idx) > 0) {
     calls <- names(x[idx])
     calls <- regmatches(calls, regexpr("\\*[0-9]+$", calls))
-    calls <- paste(calls, sep = "")
+    calls <- paste(calls, collapse = "")
     return(calls)
   }
 
-  # Default to reference if not matches
-  return("*1")
+  # Default to 'Ambiguous' if no complete matches
+  return("*Amb")
 }
 
 #' Call diplotypes from phased genotype data
@@ -205,7 +211,9 @@ setMethod("convertGTtoNucleotides", "PGx", function(x) {
 #' exact matches are reported as calls for a particular star allele. A final
 #' diplotype string is then created by concatenating haplotype calls from each
 #' allele. The final output is a data.frame with rownames for each sample in the
-#' PGx object and the phased diplotype calls.
+#' PGx object and the phased diplotype calls. If no exact matches are found for 
+#' any of the callable alleles then the resulting diplotype called is marked as
+#' ambiguous ("Amb")
 #' @export
 #' @rdname callPhasedDiplotypes
 #' @return DataFrame of diplotype calls for each sample in the PGx object
