@@ -23,9 +23,43 @@ This package is still in active development but can be installed with:
 devtools::install_github("coriell-research/ursaPGx")
 ```
 
-## Example Analysis
+## Quick Start
 
+The `callDiplotypes()` function is a wrapper for calling the main pipeline 
+scripts and returning a DataFrame of the allele calls. Generating allele calls
+for all samples in a VCF file for CYP2C8, for example, can be done with:
+
+```r
+# Specify the path to the VCF file
+vcf <- "1kGP_high_coverage_Illumina.chr10.filtered.SNV_INDEL_SV_phased_panel.vcf.gz"
+
+# Call phased diplotypes for CYP2C8
+result <- callDiplotypes(vcf, gene = "CYP2C8", phased = TRUE)
+
+result
+>DataFrame with 3202 rows and 1 column
+>             CYP2C8
+>        <character>
+>HG00096       *4|*1
+>HG00097       *1|*1
+>HG00099       *1|*1
+>HG00100       *1|*1
+>HG00101       *1|*1
+>...             ...
+>NA21137       *1|*1
+>NA21141       *1|*1
+>NA21142       *1|*3
+>NA21143       *1|*1
+>NA21144       *1|*1
 ```
+
+## Full pipeline
+
+Each of steps wrapped in the `callDiplotypes()` function above can be run 
+individually so that the results of each step can be checked. The full caller 
+pipeline for CYP2C19, for example:
+
+```r
 # Specify the path the the VCF object
 vcf <- "1kGP_high_coverage_Illumina.chr10.filtered.SNV_INDEL_SV_phased_panel.vcf.gz"
 
@@ -52,4 +86,34 @@ head(result)
 >HG00100   *1|*1
 >HG00101   *1|*1
 >HG00102  *17|*1
+```
+
+## CYP2D6 
+
+CYP2D6 allele calling is performed using an interface to [Ilumina Cyrius CYP2D6 star allele caller](https://github.com/Illumina/Cyrius). Since CYP2D6 calling needs copy 
+number information, BAM/CRAM files are used as input to the function instead of 
+VCF. Please refer to the function documentation (`?cyrius()`) for more 
+information about calling CYP2D6.
+
+```r
+# Create a vector of BAM/CRAM file paths
+cram <- c("HG00276.final.cram", "HG00436.final.cram", "HG00589.final.cram")
+
+# Optionally name the input files
+names(cram) <- c("HG00276", "HG00436", "HG00589")
+
+# Specify the path to the reference fasta file used in BAM/CRAM creation
+fa <- "GRCh38_full_analysis_set_plus_decoy_hla.fa"
+
+# Call CYP2D6 for each of the samples using Cyrius
+result <- cyrius(cram, reference = fa)
+
+result
+
+>DataFrame with 3 rows and 3 columns
+>             Sample    Genotype      Filter
+>        <character> <character> <character>
+>HG00276     HG00276       *4/*5        PASS
+>HG00436     HG00436    *2x2/*71        PASS
+>HG00589     HG00589      *1/*21        PASS
 ```
