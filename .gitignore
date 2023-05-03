@@ -6,6 +6,8 @@
 .DS_Store
 
 data-raw/sample_vcf
+data-raw/sample_cram
+data-raw/fasta
 data-raw/pharmvar*
 
 rsconnect/
