@@ -144,3 +144,39 @@ summarizeDiplotypeCalls <- function(df, phased = TRUE) {
     
     return(DF)
 }
+
+
+#' Perform diplotype calling pipeline
+#' 
+#' This function is a wrapper around the main pipeline steps for calling
+#' diplotypes from VCF files. It wraps the following functions: (1) \code{readPGx()}
+#' (2) \code{determineCallableAlleles()} (3) \code{buildReferenceDataFrame()} (4)
+#' \code{convertGTtoNucleotides()} (5) \code{callPhasedDiplotypes()} and produces
+#' a single DataFrame with allele calls for all samples in the VCF as output.
+#' @param vcf Path to VCF file
+#' @param gene The PGx gene to perform allele calling for. Must be one of \code{availableGenes()}
+#' @param build The genome build. One of "GRCh38" or "GRCh37".
+#' @param phased Logical value indicating whether or not the input data are 
+#' phased. TRUE is the only accepted value currently.
+#' @return DataFrame with sample names as rows and column as PGx gene with allele calls
+#' @rdname callDiplotypes
+#' @export
+callDiplotypes <- function(vcf, gene, build = "GRCh38", phased = TRUE) {
+    stopifnot("phased = FALSE is not yet implemented" = isTRUE(phased))
+    
+    message("Reading in ", vcf, " as PGx object...")
+    p <- readPGx(vcf, gene, build)
+    message("Determining callable alleles for ", pgxGene(p), " gene...")
+    p <- determineCallableAlleles(p)
+    message("Building a reference from the callable alleles...")
+    p <- buildReferenceDataFrame(p)
+    message("Converting the genotypes to nucleotides for all samples...")
+    p <- convertGTtoNucleotides(p)
+    
+    if (phased)
+        message("Calling phased diplotypes...")
+    result <- callPhasedDiplotypes(p)
+    
+    message("Done.")
+    return(result)
+}
