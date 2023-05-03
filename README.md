@@ -26,7 +26,7 @@ devtools::install_github("coriell-research/ursaPGx")
 ## Quick Start
 
 The `callDiplotypes()` function is a wrapper for calling the main pipeline 
-scripts and returning a DataFrame of the allele calls. Generating allele calls
+steps and returning a DataFrame of the allele calls. Generating allele calls
 for all samples in a VCF file for CYP2C8, for example, can be done with:
 
 ```r
