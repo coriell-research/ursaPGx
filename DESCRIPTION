@@ -18,10 +18,9 @@ Config/testthat/edition: 3
 Config/reticulate:
   list(
     packages = list(
-      list(package = "scipy", pip = FALSE),
-      list(package = "numpy", pip = FALSE),
+      list(package = "statsmodels", pip = FALSE),
       list(package = "pysam", pip = FALSE),
-      list(package = "statsmodels", pip = FALSE)
+      list(package = "scipy", pip = FALSE)
     )
   )
 biocViews:
