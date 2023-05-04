@@ -19,7 +19,7 @@ Config/reticulate:
   list(
     packages = list(
       list(package = "statsmodels", pip = FALSE),
-      list(package = "pysam", pip = FALSE),
+      list(package = "pysam", pip = FALSE, channel = "bioconda"),
       list(package = "scipy", pip = FALSE)
     )
   )
