@@ -4,16 +4,23 @@
 #' This function provides an interface to the
 #' [Ilumina Cyrius CYP2D6 star allele caller](https://github.com/Illumina/Cyrius).
 #' The main difference between this function and the command line version of
-#' Cyrius is that logging and multi-threading are disabled in this version.
+#' Cyrius is that logging and multi-threading are disabled in this version and 
+#' this function requires the usage of a fasta reference file.
 #'
-#' @param files Vector of file paths to BAM/CRAM files. If BAM/CRAM files vector is named
-#' these names will be used as Sample IDs in the final output.
-#' @param reference Path to the reference fasta file used in BAM/CRAM creation. Default (NULL)
+#' @param files Vector of file paths to BAM/CRAM files. If BAM/CRAM files vector 
+#' is named these names will be used as Sample IDs in the final output.
+#' @param reference Path to the reference fasta file used in BAM/CRAM creation.
 #' @param genome Reference genome. One of c("hg19", "hg37", "hg38"). Default "hg38"
-#' @param output Type of output to report. One of c("simple", "verbose"). If "simple" (default) then
-#' the Cyrius "TSV" output will be returned as a DataFrame. If "verbose" then the "JSON" output
-#' will be returned as a nested list. See 'Details' for more information.
-#' @param ... Additional values passed to \code{reticulate::use_condaenv("r-reticulate", ...)}
+#' @param output Type of output to report. One of c("simple", "verbose"). If 
+#' "simple" (default) then the Cyrius "TSV" output will be returned as a 
+#' DataFrame. If "verbose" then the "JSON" output will be returned as a nested 
+#' list. See 'Details' for more information.
+#' @param condaenv Name of the conda env containing the Cyrius dependencies. 
+#' The "r-reticulate" environment is created by default when running this 
+#' function for the first time. However, if you choose to use a different 
+#' environment (that also contains the same Cyrius dependencies) it can be 
+#' specified with this argument. Default ("r-reticulate")
+#' @param ... Additional values passed to \code{reticulate::use_condaenv(condaenv, ...)}.
 #' @details
 #' Cyrius is a tool to genotype CYP2D6 from a whole-genome sequencing (WGS) BAM file. Cyrius uses a novel method to solve the problems caused by the high sequence similarity with the pseudogene paralog CYP2D7 and thus is able to detect all star alleles, particularly those that contain structural variants, accurately. Please refer to our [paper](https://www.nature.com/articles/s41397-020-00205-5) for details about the method.
 #'
@@ -66,15 +73,12 @@
 #' - The majority of reads in CYP2D6/CYP2D7 region have a mapping quality of zero. This is probably due to some post-processing tools like bwa-postalt that modifies the mapQ in the BAM. We recommend using the BAM file before such post-processing steps as input to Cyrius.
 #' @export
 #' @md
-cyrius <- function(files, reference = NULL, genome = "hg38", output = "simple", ...) {
+cyrius <- function(files, reference, genome = "hg38", output = "simple", 
+                   condaenv = "r-reticulate", ...) {
   stopifnot("genome must be one of c('hg19', 'hg37', hg38')" = genome %in% c("hg38", "hg37", "hg19"))
   stopifnot("output must be one of c('simple', 'verbose')" = output %in% c("simple", "verbose"))
-
-  # Check that the input files exist before handing off to Python
-  if (!is.null(reference)) {
-    stopifnot("Reference fasta file does not exist" = file.exists(reference))
-  }
-
+  stopifnot("Reference fasta file does not exist" = file.exists(reference))
+  
   if (!all(file.exists(files))) {
     stop("BAM/CRAM files do not exist.")
   }
@@ -98,10 +102,11 @@ cyrius <- function(files, reference = NULL, genome = "hg38", output = "simple", 
     hg38 = "38"
   )
 
-  message("Running Cyrius...")
   path <- system.file("python", package = "ursaPGx")
   star_caller <- reticulate::import_from_path("star_caller", path = path, delay_load = TRUE)
-  reticulate::use_condaenv("r-reticulate", ...)
+  reticulate::use_condaenv(condaenv = condaenv, ...)
+  
+  message("Running Cyrius...")
   result <- star_caller$cyrius(
     d = reticulate::py_dict(keys = sample_names, values = files),
     genome = build,

@@ -4,21 +4,35 @@
 \alias{cyrius}
 \title{Interface to Illumina Cyrius CYP2D6 Star Allele Caller}
 \usage{
-cyrius(files, reference = NULL, genome = "hg38", output = "simple", ...)
+cyrius(
+  files,
+  reference = NULL,
+  genome = "hg38",
+  output = "simple",
+  condaenv = "r-reticulate",
+  ...
+)
 }
 \arguments{
-\item{files}{Vector of file paths to BAM/CRAM files. If BAM/CRAM files vector is named
-these names will be used as Sample IDs in the final output.}
+\item{files}{Vector of file paths to BAM/CRAM files. If BAM/CRAM files vector
+is named these names will be used as Sample IDs in the final output.}
 
 \item{reference}{Path to the reference fasta file used in BAM/CRAM creation. Default (NULL)}
 
 \item{genome}{Reference genome. One of c("hg19", "hg37", "hg38"). Default "hg38"}
 
-\item{output}{Type of output to report. One of c("simple", "verbose"). If "simple" (default) then
-the Cyrius "TSV" output will be returned as a DataFrame. If "verbose" then the "JSON" output
-will be returned as a nested list. See 'Details' for more information.}
+\item{output}{Type of output to report. One of c("simple", "verbose"). If
+"simple" (default) then the Cyrius "TSV" output will be returned as a
+DataFrame. If "verbose" then the "JSON" output will be returned as a nested
+list. See 'Details' for more information.}
 
-\item{...}{Additional values passed to \code{reticulate::use_condaenv("r-reticulate", ...)}}
+\item{condaenv}{Name of the conda env containing the Cyrius dependencies.
+The "r-reticulate" environment is created by default when running this
+function for the first time. However, if you choose to use a different
+environment (that also contains the same Cyrius dependencies) it can be
+specified with this argument. Default ("r-reticulate")}
+
+\item{...}{Additional values passed to \code{reticulate::use_condaenv(condaenv, ...)}.}
 }
 \description{
 This function provides an interface to the
