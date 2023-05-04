@@ -95,6 +95,13 @@ number information, BAM/CRAM files are used as input to the function instead of
 VCF. Please refer to the function documentation (`?cyrius()`) for more 
 information about calling CYP2D6.
 
+Cyrius is a Python program and needs certain Python dependencies to run 
+successfully. When running the `cyrius()` function for the first time a Python
+environment will be created by `reticulate::conda_create()` automatically. This
+will create a conda environment named "r-reticulate" which will be activated 
+when the `cyrius()` function is called. If conda is not installed on your system
+then `reticulate` will prompt you to install [Miniconda](https://docs.conda.io/en/latest/miniconda.html)
+
 ```r
 # Create a vector of BAM/CRAM file paths
 cram <- c("HG00276.final.cram", "HG00436.final.cram", "HG00589.final.cram")
