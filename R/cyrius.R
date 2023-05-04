@@ -13,7 +13,7 @@
 #' @param output Type of output to report. One of c("simple", "verbose"). If "simple" (default) then
 #' the Cyrius "TSV" output will be returned as a DataFrame. If "verbose" then the "JSON" output
 #' will be returned as a nested list. See 'Details' for more information.
-#'
+#' @param ... Additional values passed to \code{reticulate::use_condaenv("r-reticulate", ...)}
 #' @details
 #' Cyrius is a tool to genotype CYP2D6 from a whole-genome sequencing (WGS) BAM file. Cyrius uses a novel method to solve the problems caused by the high sequence similarity with the pseudogene paralog CYP2D7 and thus is able to detect all star alleles, particularly those that contain structural variants, accurately. Please refer to our [paper](https://www.nature.com/articles/s41397-020-00205-5) for details about the method.
 #'
@@ -66,7 +66,7 @@
 #' - The majority of reads in CYP2D6/CYP2D7 region have a mapping quality of zero. This is probably due to some post-processing tools like bwa-postalt that modifies the mapQ in the BAM. We recommend using the BAM file before such post-processing steps as input to Cyrius.
 #' @export
 #' @md
-cyrius <- function(files, reference = NULL, genome = "hg38", output = "simple") {
+cyrius <- function(files, reference = NULL, genome = "hg38", output = "simple", ...) {
   stopifnot("genome must be one of c('hg19', 'hg37', hg38')" = genome %in% c("hg38", "hg37", "hg19"))
   stopifnot("output must be one of c('simple', 'verbose')" = output %in% c("simple", "verbose"))
 
@@ -101,6 +101,7 @@ cyrius <- function(files, reference = NULL, genome = "hg38", output = "simple") 
   message("Running Cyrius...")
   path <- system.file("python", package = "ursaPGx")
   star_caller <- reticulate::import_from_path("star_caller", path = path, delay_load = TRUE)
+  reticulate::use_condaenv("r-reticulate", ...)
   result <- star_caller$cyrius(
     d = reticulate::py_dict(keys = sample_names, values = files),
     genome = build,
