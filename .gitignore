@@ -10,6 +10,11 @@ data-raw/sample_cram
 data-raw/fasta
 data-raw/pharmvar*
 
+scripts/*.xlsx
+scripts/*.tsv
+scripts/*.csv
+scripts/*.png
+
 rsconnect/
 
 .Rapp.history
