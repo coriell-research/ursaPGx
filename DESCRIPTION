@@ -15,14 +15,6 @@ BugReports: https://github.com/coriell-research/ursaPGx/issues
 Suggests: 
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
-Config/reticulate:
-  list(
-    packages = list(
-      list(package = "statsmodels", pip = FALSE),
-      list(package = "pysam", pip = FALSE, channel = "bioconda"),
-      list(package = "scipy", pip = FALSE)
-    )
-  )
 biocViews:
 Depends: 
     R (>= 2.10),
