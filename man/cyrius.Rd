@@ -4,20 +4,13 @@
 \alias{cyrius}
 \title{Interface to Illumina Cyrius CYP2D6 Star Allele Caller}
 \usage{
-cyrius(
-  files,
-  reference = NULL,
-  genome = "hg38",
-  output = "simple",
-  condaenv = "r-reticulate",
-  ...
-)
+cyrius(files, reference, genome = "hg38", output = "simple")
 }
 \arguments{
 \item{files}{Vector of file paths to BAM/CRAM files. If BAM/CRAM files vector
 is named these names will be used as Sample IDs in the final output.}
 
-\item{reference}{Path to the reference fasta file used in BAM/CRAM creation. Default (NULL)}
+\item{reference}{Path to the reference fasta file used in BAM/CRAM creation.}
 
 \item{genome}{Reference genome. One of c("hg19", "hg37", "hg38"). Default "hg38"}
 
@@ -25,20 +18,13 @@ is named these names will be used as Sample IDs in the final output.}
 "simple" (default) then the Cyrius "TSV" output will be returned as a
 DataFrame. If "verbose" then the "JSON" output will be returned as a nested
 list. See 'Details' for more information.}
-
-\item{condaenv}{Name of the conda env containing the Cyrius dependencies.
-The "r-reticulate" environment is created by default when running this
-function for the first time. However, if you choose to use a different
-environment (that also contains the same Cyrius dependencies) it can be
-specified with this argument. Default ("r-reticulate")}
-
-\item{...}{Additional values passed to \code{reticulate::use_condaenv(condaenv, ...)}.}
 }
 \description{
 This function provides an interface to the
 \href{https://github.com/Illumina/Cyrius}{Ilumina Cyrius CYP2D6 star allele caller}.
 The main difference between this function and the command line version of
-Cyrius is that logging and multi-threading are disabled in this version.
+Cyrius is that logging and multi-threading are disabled in this version and
+this function requires the usage of a fasta reference file.
 }
 \details{
 Cyrius is a tool to genotype CYP2D6 from a whole-genome sequencing (WGS) BAM file. Cyrius uses a novel method to solve the problems caused by the high sequence similarity with the pseudogene paralog CYP2D7 and thus is able to detect all star alleles, particularly those that contain structural variants, accurately. Please refer to our \href{https://www.nature.com/articles/s41397-020-00205-5}{paper} for details about the method.
