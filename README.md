@@ -96,11 +96,18 @@ VCF. Please refer to the function documentation (`?cyrius()`) for more
 information about calling CYP2D6.
 
 Cyrius is a Python program and needs certain Python dependencies to run 
-successfully. When running the `cyrius()` function for the first time a Python
-environment will be created by `reticulate::conda_create()` automatically. This
-will create a conda environment named "r-reticulate" which will be activated 
-when the `cyrius()` function is called. If conda is not installed on your system
-then `reticulate` will prompt you to install [Miniconda](https://docs.conda.io/en/latest/miniconda.html)
+successfully. In order to run `cyrius()`, first install the necessary 
+dependencies using the `install_cyrius()` function and then activate the environment:
+
+```r
+# Install the Cyrius dependencies into a conda/virtualenv called 'r-reticulate'
+install_cyrius()
+
+# Activate the 'r-reticulate' environment
+reticulate::use_condaenv("r-reticulate")
+```
+
+Now you're ready to use `cyrius()` to call CYP2D6 alleles:
 
 ```r
 # Create a vector of BAM/CRAM file paths
