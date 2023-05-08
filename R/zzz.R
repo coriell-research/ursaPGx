@@ -1,18 +1,6 @@
-.onLoad <- function() {
-    message("Checking if miniconda is installed...")
-    if (!file.exists(file.path(reticulate::miniconda_path(), "bin/conda"))) {
-        reticulate::install_miniconda()
-    }
-    
-    message("Checking if 'r-reticulate' environment exists...")
-    envs <- reticulate::conda_list()
-    if (!"r-reticulate" %in% envs) {
-        reticulate::conda_create("r-reticulate")
-        
-        # Install necessary packages
-        reticulate::conda_install(
-            "r-reticulate", 
-            packages = c("pysam", "statsmodels", "scipy"),
-            channel = c("conda-forge", "anaconda", "bioconda"))
-    }
+star_caller <- NULL
+
+.onLoad <- function(libname, pkgname) {
+  path <- system.file("python", package = "ursaPGx")
+  star_caller <<- reticulate::import_from_path("star_caller", path = path, delay_load = TRUE)
 }
