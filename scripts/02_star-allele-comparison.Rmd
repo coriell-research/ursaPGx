@@ -1,0 +1,111 @@
+---
+title: "Star Allele Comparison"
+output: html_document
+date: "2023-05-04"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Load Libraries
+
+```{r}
+suppressPackageStartupMessages(library(here))
+suppressPackageStartupMessages(library(data.table))
+suppressPackageStartupMessages(library(readxl))
+```
+
+## Read in the GeT-RM comparison paper data
+
+[CYP2C8, CYP2C9, and CYP2C19 Characterization Using Next-Generation Sequencing and Haplotype Analysis](https://pubmed.ncbi.nlm.nih.gov/35134542/) is used as the comparison 
+set for this script. The Supplementary data 3 from that paper includes separate 
+sheets for the callsets for CYP2C8, CYP2C9, and CYP2C19.
+
+```{r}
+# Download the supplementary data from the paper
+url <- "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9069873/bin/mmc3.xlsx"
+suppfile <- here("scripts", "data", "mmc3.xlsx")
+if (!file.exists(suppfile)) download.file(url, suppfile)
+
+# Read in the data for each gene
+getrm_CYP2C8 <- setDT(read_excel(suppfile, sheet = "CYP2C8", skip = 3))
+getrm_CYP2C9 <- setDT(read_excel(suppfile, sheet = "CYP2C9", skip = 3))
+getrm_CYP2C19 <- setDT(read_excel(suppfile, sheet = "CYP2C19", skip = 3)) 
+
+# Select only the necessary columns from the supp data
+#   For each gene, the Sample ID, the GeT-RM consensus, and the NGS consensus
+getrm_CYP2C8 <- getrm_CYP2C8[, c(1, 3, 4)]
+getrm_CYP2C9 <- getrm_CYP2C9[, c(1, 3, 5)]
+getrm_CYP2C19 <- getrm_CYP2C19[, c(1, 3, 5)]
+names(getrm_CYP2C8) <-  c("Coriell", "CYP2C8_getrm", "CYP2C8_ngs")
+names(getrm_CYP2C9) <-  c("Coriell", "CYP2C9_getrm", "CYP2C9_ngs")
+names(getrm_CYP2C19) <- c("Coriell", "CYP2C19_getrm", "CYP2C19_ngs")
+```
+
+## Get the GeT-RM CYP2D6 calls
+
+[Characterization of Reference Materials for Genetic Testing of CYP2D6 Alleles](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6854474/) supplementary 
+data 2 contains a spreadsheet with CYP2D6 consensus calls for Get-RM samples
+from this study.
+
+```{r}
+# Download the supplementary data from the paper
+url2 <- "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6854474/bin/mmc2.xlsx"
+suppfile2 <- here("scripts", "data", "mmc2.xlsx")
+if (!file.exists(suppfile2)) download.file(url2, suppfile2)
+
+# Read in the sheet with CYP2D6 calls
+getrm_CYP2D6 <- setDT(read_excel(suppfile2, sheet = 1, skip = 3))
+
+# Select only the necessary columns from the supp data
+getrm_CYP2D6 <- getrm_CYP2D6[, c(1, 4)]
+names(getrm_CYP2D6) <- c("Coriell", "CYP2D6_getrm")
+
+# Remove extra rows
+getrm_CYP2D6 <- getrm_CYP2D6[!is.na(CYP2D6_getrm)]
+```
+
+## Read in `ursaPGx` results
+
+```{r}
+# ursaPGx results from 01_call-1kGp-diplotypes.Rmd
+ursa <- fread(here("scripts", "results", "1kGp-ursaPGx-results.tsv"))
+
+# Keep only a subset of the genes tested by GeT-RM and change column names
+ursa <- ursa[, .(Coriell = Sample, CYP2C8_ursa = CYP2C8, CYP2C9_ursa = CYP2C9,
+                 CYP2C19_ursa = CYP2C19, CYP2D6_ursa = CYP2D6)]
+```
+
+## Merge all data into a single table
+
+Sample IDs do not map 1-to-1 from the GeT-RM paper(s) to the 1kGp sample names. 
+Include two versions of output: One with all results and the other with only
+common IDs between both sets.
+
+```{r}
+dfs <- list(ursa, getrm_CYP2C19, getrm_CYP2C8, getrm_CYP2C9, getrm_CYP2D6)
+allmerge <- function(x, y) merge(x, y, all = TRUE)
+merged <- Reduce(allmerge, dfs)
+
+# Reorder the columns in the table to make it easier to compare
+cols <- c("Coriell",
+          "CYP2C8_getrm", "CYP2C8_ngs", "CYP2C8_ursa", 
+          "CYP2C9_getrm", "CYP2C9_ngs", "CYP2C9_ursa", 
+          "CYP2C19_getrm", "CYP2C19_ngs", "CYP2C19_ursa",
+          "CYP2D6_getrm", "CYP2D6_ursa"
+          )
+setcolorder(merged, cols)
+
+# Write out to file
+fwrite(merged, here("scripts", "results", "star-allele-comparison_merged.tsv"), sep = "\t")
+```
+
+Now subset for only matching IDs across all data.tables
+
+```{r}
+ids <- lapply(dfs, function(x) x[, Coriell])
+common <- Reduce(intersect, ids)
+common <- merged[Coriell %chin% common]
+fwrite(common, here("scripts", "results", "star-allele-comparison_common.tsv"), sep = "\t")
+```

@@ -1,0 +1,91 @@
+---
+title: "Call All Diplotypes"
+output: html_document
+date: "2023-06-08"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Load Libraries
+
+```{r}
+suppressPackageStartupMessages(library(here))
+suppressPackageStartupMessages(library(data.table))
+suppressPackageStartupMessages(devtools::load_all("."))
+```
+
+## Maps genes to chromosomes
+
+The 30X phased VCF files were downloaded from the ebi ftp server [here](https://ftp.1000genomes.ebi.ac.uk/vol1/ftp/data_collections/1000G_2504_high_coverage/working/20220422_3202_phased_SNV_INDEL_SV/).
+
+```{r}
+# Create file paths to VCF fles saved in local directory
+chroms <- c("chr10", "chr19", "chr22", "chr1", "chr11", "chr7", "chr13", "chr12")
+d <- here("data-raw", "sample_vcf")
+f <- paste0("1kGP_high_coverage_Illumina.", chroms, ".filtered.SNV_INDEL_SV_phased_panel.vcf.gz")
+files <- file.path(d, f)
+names(files) <- chroms
+
+# Mapping for chromosome to genes
+df <- data.frame(
+  chrom = c("chr19", "chr19", "chr19", "chr10", "chr10", "chr10", 
+              "chr7", "chr7", "chr19", "chr13", "chr12"
+  ),
+  gene = c("CYP2A13", "CYP2A6", "CYP2B6", "CYP2C19", "CYP2C8", "CYP2C9", 
+           "CYP3A4", "CYP3A5", "CYP4F2", "NUDT15", "SLCO1B1"
+  )
+)
+```
+
+## Create diplotype calls for each gene
+
+```{r}
+results <- vector("list", nrow(df))
+for (i in 1:nrow(df)) {
+  chrom <- df[i, "chrom", drop = TRUE]
+  gene <- df[i, "gene", drop = TRUE]
+  results[[i]] <- callDiplotypes(files[chrom], gene = gene)
+}
+
+# Bind all into a single DataFrame
+results <- do.call(cbind, results)
+
+# Convert to a data.table
+results <- as.data.table(results, keep.rownames = "Sample")
+```
+
+## Read in the CYP2D6 calls from Cyrius and combine
+
+CYP2D6 calls were generated outside of `ursaPGX` by downloading CRAM files from
+EBI ftp [here](ftp://ftp.sra.ebi.ac.uk/vol1/run/ERR324/) for each individual 
+sample. Each CRAM file was processed using the standalone version of Cyrius. 
+
+An example of the command is given below for a single sample
+
+```
+CRAM=/path/to/CRAM_files
+OUT=/path/to/out_dir
+CYRIUS=path/to/Cyrius/star_caller.py
+SAMPLE="HGxxxxx"
+REF=GRCh38_full_analysis_set_plus_decoy_hla.fa
+
+$CYRIUS --bamfile $CRAM/${SAMPLE}.final.cram --reference $REF --genome '38' --prefix ${SAMPLE} --outDir $OUT
+```
+
+```{r}
+cyp2d6 <- fread(here("scripts", "data", "1kGp-Cyrius-results.tsv"))
+
+# Swap the 'Genotype' column name to match results format
+setnames(cyp2d6, "Genotype", "CYP2D6")
+
+# Drop the filter column
+cyp2d6[, Filter := NULL]
+
+# Create a single results table by binding on CYP2D6 calls
+results <- results[cyp2d6, on = "Sample"]
+
+# Write full results out to file
+fwrite(results, here("scripts", "results", "1kGp-ursaPGx-results.tsv"), sep = "\t")
+```
