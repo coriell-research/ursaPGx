@@ -202,6 +202,7 @@ setMethod("convertGTtoNucleotides", "PGx", function(x) {
     
     # Only gene named with rsids
     if (gene == "DPYD") {
+      calls <- gsub("DPYD", "", calls)
       return(paste(calls, collapse = ""))
     }
     
