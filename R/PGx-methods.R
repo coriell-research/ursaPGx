@@ -76,7 +76,13 @@ setReplaceMethod("pgxReferenceDataFrame", "PGx", function(x, value) {
 
 #' Extract a GRangesList for all defined haplotypes of the PGx object
 .extractHaplotypeRanges <- function(x) {
-  haplotypes <- grep(pgxGene(x), availableHaplotypes(pgxBuild(x)), value = TRUE)
+  if (pgxGene(x) == "DPYD") {
+    # Only gene with rs ids as names
+    haplotypes <- grep("^rs", availableHaplotypes(pgxBuild(x)), value = TRUE)
+  } else {
+    haplotypes <- grep(pgxGene(x), availableHaplotypes(pgxBuild(x)), value = TRUE)
+  }
+ 
   vrl <- lapply(haplotypes, availableHaplotypeRanges, build = pgxBuild(x))
   names(vrl) <- haplotypes
 
@@ -188,11 +194,18 @@ setMethod("convertGTtoNucleotides", "PGx", function(x) {
   return(l)
 }
 
-#' Convert the Boolean calls to a star alleles
-.boolToStar <- function(x) {
+#' Convert the boolean calls to a star alleles
+.boolToStar <- function(x, gene) {
   idx <- which(x == TRUE)
   if (length(idx) > 0) {
     calls <- names(x[idx])
+    
+    # Only gene named with rsids
+    if (gene == "DPYD") {
+      return(paste(calls, collapse = ""))
+    }
+    
+    # Extract only the allele number from the full star allele name
     calls <- regmatches(calls, regexpr("\\*[0-9]+$", calls))
     calls <- paste(calls, collapse = "")
     return(calls)
@@ -255,8 +268,9 @@ setMethod("callPhasedDiplotypes", "PGx", function(x) {
     call2[[i]] <- c2
   }
 
-  star1 <- lapply(call1, .boolToStar)
-  star2 <- lapply(call2, .boolToStar)
+  g <- pgxGene(x)
+  star1 <- lapply(call1, .boolToStar, gene = g)
+  star2 <- lapply(call2, .boolToStar, gene = g)
   allele <- paste(star1, star2, sep = "|")
   result <- S4Vectors::DataFrame(Call = allele, row.names = colnames(x))
   colnames(result) <- pgxGene(x)
