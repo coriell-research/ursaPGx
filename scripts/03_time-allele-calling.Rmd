@@ -1,0 +1,58 @@
+---
+title: "Time UrsaPGx"
+output: html_document
+date: "2023-07-06"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Create a simple timing of the execution of `ursaPGx` for all 3202 samples and
+all pharmacogenes.
+
+## Load Libraries
+
+```{r}
+suppressPackageStartupMessages(library(here))
+suppressPackageStartupMessages(devtools::load_all("."))
+```
+
+## Maps genes to chromosomes
+
+The 30X phased VCF files were downloaded from the ebi ftp server [here](https://ftp.1000genomes.ebi.ac.uk/vol1/ftp/data_collections/1000G_2504_high_coverage/working/20220422_3202_phased_SNV_INDEL_SV/).
+
+```{r}
+# Create file paths to VCF files saved in local directory
+chroms <- c("chr10", "chr19", "chr22", "chr1", "chr11", "chr7", "chr13", "chr12")
+d <- here("data-raw", "sample_vcf")
+f <- paste0("1kGP_high_coverage_Illumina.", chroms, ".filtered.SNV_INDEL_SV_phased_panel.vcf.gz")
+files <- file.path(d, f)
+names(files) <- chroms
+
+# Mapping for chromosome to genes
+df <- data.frame(
+  chrom = c("chr19", "chr19", "chr19", "chr10", "chr10", "chr10", "chr7", 
+            "chr7", "chr19", "chr13", "chr12", "chr1"),
+  gene = c("CYP2A13", "CYP2A6", "CYP2B6", "CYP2C19", "CYP2C8", "CYP2C9",   
+           "CYP3A4" , "CYP3A5", "CYP4F2", "NUDT15", "SLCO1B1", "DPYD")
+  )
+```
+
+## Time the execution of diplotype calls
+
+```{r}
+results <- vector("list", nrow(df))
+start <- Sys.time() # Total time all genes all samples
+for (i in 1:nrow(df)) {
+  chrom <- df[i, "chrom", drop = TRUE]
+  gene <- df[i, "gene", drop = TRUE]
+  print(gene)
+  gstart <- Sys.time() # Time per gene all samples
+  results[[i]] <- suppressMessages(callDiplotypes(files[chrom], gene = gene))
+  print(Sys.time() - gstart)
+}
+
+# Total time 
+print(Sys.time() - start)
+```
