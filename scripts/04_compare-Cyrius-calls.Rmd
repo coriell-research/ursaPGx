@@ -1,0 +1,70 @@
+---
+title: "Compare to Cyrius"
+output: html_document
+date: "2023-07-10"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Compare `ursaPGx` Cyrius calls to Cyrius published calls
+
+## Load Libraries
+
+```{r}
+library(here)
+library(data.table)
+```
+
+## Download the supplement from the Cyrius paper
+
+```{r}
+url <- "https://static-content.springer.com/esm/art%3A10.1038%2Fs41397-020-00205-5/MediaObjects/41397_2020_205_MOESM2_ESM.xlsx"
+suppfile <- here("scripts", "data", "41397_2020_205_MOESM2_ESM.xlsx")
+
+if (!file.exists(suppfile))
+  download.file(url, suppfile)
+
+# Read in the 1kGp calls
+cyrius <- readxl::read_xlsx(suppfile, sheet = "Table_S5", range = "A2:C2506")
+setDT(cyrius)
+```
+
+## Read in the `Cyrius` calls produced by `ursaPGx`
+
+These were produced on the phase3 1kGp data for 3202 samples.
+
+```{r}
+ursa <- fread(here("scripts", "data", "1kGp-Cyrius-results.tsv"))
+```
+
+## Join the callsets together
+
+```{r}
+joined <- ursa[cyrius, on = c("Sample" = "SampleID")]
+setnames(joined, 
+         old = c("Genotype", "Filter", "i.Genotype", "i.Filter"),
+         new = c("Genotype_ursa", "Filter_ursa", "Genotype_Cyrius", "Filter_Cyrius")
+         )
+
+# Write the comparison table out to a file
+fwrite(joined, here("scripts", "results", "1kGp-ursaPGx_cyrius-vs-Cyrius.tsv"), sep = "\t")
+```
+
+## What rows do not match? 
+
+Only 2 rows show a mismatch. The others are differences in encoding the 
+variants between Cyrius versions.
+
+```{r}
+joined[Genotype_ursa != Genotype_Cyrius | Filter_ursa != Filter_Cyrius]
+```
+
+| Sample  | Genotype (ursaPGx) | Filter (ursaPGx) | Genotype (Cyrius) | Filter (Cyrius)            |
+|---------|--------------------|------------------|-------------------|----------------------------|
+| NA19462 | *17/*68+*45        | PASS             | *17_*45_*68       | Not_assigned_to_haplotypes |
+| NA18611 | *10/*2             | PASS             | None              | None                       |
+| HG02490 | *2/*33             | PASS             | None              | None                       |
+| NA19017 | *29/*68+*68+*45    | PASS             | *29_*45_*68_*68   | Not_assigned_to_haplotypes |
+
