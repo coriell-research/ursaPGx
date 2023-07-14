@@ -145,13 +145,24 @@ setMethod("buildReferenceDataFrame", "PGx", function(x) {
   }
   
   # Fill missing positions with reference bases
+  #  If *1 is defined by a non-reference position (CYP2C19) then fill with
+  #  the *1 allele definition instead of reference bases from VCF. CYP2C19*38
+  #  is the allele definition that does not contain any amino acid changes. This
+  #  definition must be added manually.
   coalesce <- function(x, y) ifelse(is.na(x), y, x)
+  star1 <- paste0(pgxGene(x), "*1")
+  if (pgxGene(x) == "CYP2C19" & star1 %in% pgxCallableAlleles(x)) {
+    df[["CYP2C19*38"]] <- df$REF             # RefSeq REF haplotype
+    df$REF <- coalesce(df[[star1]], df$REF)  # PharmVar REF haplotype
+  }
   df[] <- lapply(df, function(x) coalesce(x, df$REF))
   
-  # Swap 'REF' colname with *1
-  gene_name <- pgxGene(x)
-  star1 <- paste0(gene_name, "*1")
-  names(df)[1] <- star1
+  # Rename/Remove the REF column
+  if (pgxGene(x) == "CYP2C19" & star1 %in% pgxCallableAlleles(x)) {
+    df$REF <- NULL
+  } else {
+    names(df)[1] <- star1   
+  }
   
   x@hasReferenceDataFrame <- TRUE
   pgxReferenceDataFrame(x) <- df
