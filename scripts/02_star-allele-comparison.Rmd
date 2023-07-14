@@ -37,7 +37,7 @@ getrm_CYP2C19 <- setDT(read_excel(suppfile, sheet = "CYP2C19", skip = 3))
 #   Sample ID and the NGS consensus calls
 getrm_CYP2C8 <- getrm_CYP2C8[, c(1, 4)]
 getrm_CYP2C9 <- getrm_CYP2C9[, c(1, 5)]
-getrm_CYP2C19 <- getrm_CYP2C19[, c(1, 5)]
+getrm_CYP2C19 <- getrm_CYP2C19[, c(1, 6)]
 names(getrm_CYP2C8) <-  c("Coriell", "CYP2C8_getrm_ngs")
 names(getrm_CYP2C9) <-  c("Coriell", "CYP2C9_getrm_ngs")
 names(getrm_CYP2C19) <- c("Coriell", "CYP2C19_getrm_ngs")
