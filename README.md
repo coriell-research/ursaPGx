@@ -4,7 +4,7 @@ The goal of this package is to use phased VCF data to assign star alleles to
 samples using existing frameworks from the
 [Bioconductor](https://www.bioconductor.org/) ecosystem and
 [PharmVar](https://www.pharmvar.org) database. This package is purpose-built for
-annotating the 1000 genomes 30X phased VCF call sets from the NYGC.
+annotating the 1000 Genomes Project 30X phased VCF call sets from the [NYGC](https://ftp.1000genomes.ebi.ac.uk/vol1/ftp/data_collections/1000G_2504_high_coverage/working/20220422_3202_phased_SNV_INDEL_SV/).
 
 ## Data Sources
 
@@ -69,11 +69,20 @@ CYP2C19 <- readPGx(vcf, gene = "CYP2C19")
 # Determine what alleles can be called from the data
 CYP2C19 <- determineCallableAlleles(CYP2C19)
 
+# To return a vector of the callable alleles
+pgxCallableAlleles(CYP2C19)
+
 # Create a reference of all positions from the callable alleles 
 CYP2C19 <- buildReferenceDataFrame(CYP2C19)
 
+# To return the reference DataFrame
+pgxReferenceDataFrame(CYP2C19)
+
 # Convert the genotype code to nucleotides
 CYP2C19 <- convertGTtoNucleotides(CYP2C19)
+
+# To return the genotype matrix for all samples
+pgxGenotypeMatrix(CYP2C19)
 
 # Create diplotype calls for every sample
 result <- callPhasedDiplotypes(CYP2C19)
