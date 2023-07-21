@@ -74,6 +74,16 @@ setReplaceMethod("pgxReferenceDataFrame", "PGx", function(x, value) {
   x
 })
 
+#' Getter method for pgxGenotypeMatrix
+#' 
+#' This method is simply a wrapper around \code{geno(p)$GT}
+#' @rdname pgxGenotypeMatrix
+#' @return position by sample matrix containing genotypes for all samples in the
+#' PGx object
+setMethod("pgxGenotypeMatrix", "PGx", function(x) {
+    VariantAnnotation::geno(x)$GT
+})
+
 #' Extract a GRangesList for all defined haplotypes of the PGx object
 .extractHaplotypeRanges <- function(x) {
   if (pgxGene(x) == "DPYD") {

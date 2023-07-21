@@ -30,3 +30,6 @@ setGeneric("convertGTtoNucleotides<-", function(x, ..., value) standardGeneric("
 
 #' @export
 setGeneric("callPhasedDiplotypes", function(x) standardGeneric("callPhasedDiplotypes"))
+
+#' @export
+setGeneric("pgxGenotypeMatrix", function(x) standardGeneric("pgxGenotypeMatrix"))
