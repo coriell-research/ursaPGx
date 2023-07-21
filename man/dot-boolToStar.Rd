@@ -2,10 +2,10 @@
 % Please edit documentation in R/PGx-methods.R
 \name{.boolToStar}
 \alias{.boolToStar}
-\title{Convert the Boolean calls to a star alleles}
+\title{Convert the boolean calls to a star alleles}
 \usage{
-.boolToStar(x)
+.boolToStar(x, gene)
 }
 \description{
-Convert the Boolean calls to a star alleles
+Convert the boolean calls to a star alleles
 }
