@@ -18,7 +18,7 @@
 #' @param build The genome build. One of "GRCh38" or "GRCh37".
 #' @export
 #' @return Object of class PGx
-readPGx <- function(file, gene, build = "GRCh38") {
+readPGx <- function(file, gene, build = c("GRCh38", "GRCh37")) {
   stopifnot("Genome must be one of 'GRCh38' or 'GRCh37'" = build %in% c("GRCh38", "GRCh37"))
   stopifnot("Multple genes supplied to function" = length(gene) == 1)
   stopifnot("Gene not in gene list" = gene %in% availableGenes())
@@ -34,16 +34,16 @@ readPGx <- function(file, gene, build = "GRCh38") {
   
   # Determine the seqLevelStyle of the input file
   vcf_head <- VariantAnnotation::scanVcfHeader(file)
-  vcf_style <- GenomeInfoDb::seqlevelsStyle(VariantAnnotation::reference(vcf_head))
+  vcf_style <- GenomeInfoDb::seqlevelsStyle(VariantAnnotation::reference(vcf_head))[1]
   stopifnot("Unknown seqLevelsStyle in input VCF" = vcf_style %in% c("NCBI", "UCSC", "dbSNP", "Ensembl"))
   
-  # Adjust param seqlevels if necessary
+  # Attempt to adjust param seqlevels if necessary
   param_style <- GenomeInfoDb::seqlevelsStyle(ref)
   if (param_style != vcf_style) {
       message("seqLevelStyles differ between reference ranges and input VCF.")
-      message("Reference ranges style:", param_style)
-      message("VCF style:", vcf_style)
-      message("Attempting to convert", param_style, "to", vcf_style)
+      message("Reference ranges style: ", param_style)
+      message("VCF style: ", vcf_style)
+      message("Attempting to convert ", param_style, " to ", vcf_style)
       GenomeInfoDb::seqlevelsStyle(ref) <- vcf_style
   }
   
@@ -59,6 +59,9 @@ readPGx <- function(file, gene, build = "GRCh38") {
       type = "equal"
       )
   vcf_filtered <- vcf[S4Vectors::queryHits(ov), ]
+  
+  # Convert style back to UCSC if changed
+  GenomeInfoDb::seqlevelsStyle(vcf_filtered) <- "UCSC"
   
   p <- PGx(vcf = vcf_filtered, 
            pgxGene = gene, 

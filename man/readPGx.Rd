@@ -4,7 +4,7 @@
 \alias{readPGx}
 \title{Read in PGx Data from VCF File}
 \usage{
-readPGx(file, gene, build = "GRCh38")
+readPGx(file, gene, build = c("GRCh38", "GRCh37"))
 }
 \arguments{
 \item{file}{A phased and normalized VCF file. This file must be indexed (.tbi)}
