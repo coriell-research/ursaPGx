@@ -4,7 +4,7 @@
 \alias{availableHaplotypeRanges}
 \title{Return a VRanges object of the unique ranges for the given haplotype}
 \usage{
-availableHaplotypeRanges(haplotype, build = "GRCh38")
+availableHaplotypeRanges(haplotype, build = c("GRCh38", "GRCh37"))
 }
 \arguments{
 \item{haplotype}{Haplotype (star allele) name}

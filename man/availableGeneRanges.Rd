@@ -4,7 +4,7 @@
 \alias{availableGeneRanges}
 \title{Return an GRanges object containing all unique ranges for the given gene}
 \usage{
-availableGeneRanges(gene, build = "GRCh38")
+availableGeneRanges(gene, build = c("GRCh38", "GRCh37"))
 }
 \arguments{
 \item{gene}{Gene name}

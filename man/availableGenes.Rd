@@ -4,7 +4,7 @@
 \alias{availableGenes}
 \title{Return all available PGx genes}
 \usage{
-availableGenes(build = "GRCh38")
+availableGenes(build = c("GRCh38", "GRCh37"))
 }
 \arguments{
 \item{build}{Genome build. One of "GRCh38" or "GRCh37"}

@@ -6,7 +6,7 @@
 #' @return character vector of available gene names
 #' @export
 #' @examples pgxGenes()
-availableGenes <- function(build = "GRCh38") {
+availableGenes <- function(build = c("GRCh38", "GRCh37")) {
   build <- match.arg(build)
   switch (build,
     GRCh38 = names(ursaPGx:::grch38_gene_grl),
@@ -46,7 +46,7 @@ availableHaplotypes <- function(build = "GRCh38") {
 #' for the desired gene
 #' @export
 #' @examples pgxGeneRanges("CYP2C19")
-availableGeneRanges <- function(gene, build = "GRCh38") {
+availableGeneRanges <- function(gene, build = c("GRCh38", "GRCh37")) {
   build <- match.arg(build)
   grl <- switch (build,
     GRCh38 = ursaPGx:::grch38_gene_grl,
@@ -76,7 +76,7 @@ availableGeneRanges <- function(gene, build = "GRCh38") {
 #' @return \code{GRanges} object with unique ranges for the given haplotype (star allele)
 #' @export
 #' @examples pgxHaplotypeRanges("CYP2C19_2")
-availableHaplotypeRanges <- function(haplotype, build = "GRCh38") {
+availableHaplotypeRanges <- function(haplotype, build = c("GRCh38", "GRCh37")) {
   build <- match.arg(build)
   grl <- switch (build,
     GRCh38 = ursaPGx:::grch38_haplotype_grl,
