@@ -5,11 +5,14 @@
 #' [Ilumina Cyrius CYP2D6 star allele caller](https://github.com/Illumina/Cyrius).
 #' The main difference between this function and the command line version of
 #' Cyrius is that logging and multi-threading are disabled in this version and 
-#' this function requires the usage of a fasta reference file.
+#' this function requires the usage of a fasta reference file. Before running 
+#' this function you must install the necessary Python dependencies using
+#' \code{install_cyrius()}.
 #'
 #' @param files Vector of file paths to BAM/CRAM files. If BAM/CRAM files vector 
 #' is named these names will be used as Sample IDs in the final output.
-#' @param reference Path to the reference fasta file used in BAM/CRAM creation.
+#' @param reference Path to the reference fasta file used in BAM/CRAM creation. 
+#' Must be specified when using CRAM input. Default NULL.
 #' @param genome Reference genome. One of c("hg19", "hg37", "hg38"). Default "hg38"
 #' @param output Type of output to report. One of c("simple", "verbose"). If 
 #' "simple" (default) then the Cyrius "TSV" output will be returned as a 
@@ -67,10 +70,9 @@
 #' - The majority of reads in CYP2D6/CYP2D7 region have a mapping quality of zero. This is probably due to some post-processing tools like bwa-postalt that modifies the mapQ in the BAM. We recommend using the BAM file before such post-processing steps as input to Cyrius.
 #' @export
 #' @md
-cyrius <- function(files, reference, genome = "hg38", output = "simple") {
+cyrius <- function(files, reference = NULL, genome = "hg38", output = "simple") {
   stopifnot("genome must be one of c('hg19', 'hg37', hg38')" = genome %in% c("hg38", "hg37", "hg19"))
   stopifnot("output must be one of c('simple', 'verbose')" = output %in% c("simple", "verbose"))
-  stopifnot("Reference fasta file does not exist" = file.exists(reference))
   
   if (!all(file.exists(files))) {
     stop("BAM/CRAM files do not exist.")
@@ -81,6 +83,14 @@ cyrius <- function(files, reference, genome = "hg38", output = "simple") {
   idx_files <- paste(files, idx, sep = ".")
   if (!all(file.exists(idx_files))) {
     stop("BAM/CRAM files are not indexed or index cannot be found in the same directory.")
+  }
+  
+  # Require reference for CRAM files
+  if (any(ext == "cram")) {
+    if (is.null(reference)) {
+      stop("Reference must be defined when using CRAM files")
+    }
+    stopifnot("Reference file not found" = file.exists(reference))
   }
 
   # Give samples names if they do not exist

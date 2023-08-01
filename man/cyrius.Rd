@@ -4,13 +4,14 @@
 \alias{cyrius}
 \title{Interface to Illumina Cyrius CYP2D6 Star Allele Caller}
 \usage{
-cyrius(files, reference, genome = "hg38", output = "simple")
+cyrius(files, reference = NULL, genome = "hg38", output = "simple")
 }
 \arguments{
 \item{files}{Vector of file paths to BAM/CRAM files. If BAM/CRAM files vector
 is named these names will be used as Sample IDs in the final output.}
 
-\item{reference}{Path to the reference fasta file used in BAM/CRAM creation.}
+\item{reference}{Path to the reference fasta file used in BAM/CRAM creation.
+Must be specified when using CRAM input. Default NULL.}
 
 \item{genome}{Reference genome. One of c("hg19", "hg37", "hg38"). Default "hg38"}
 
@@ -24,7 +25,9 @@ This function provides an interface to the
 \href{https://github.com/Illumina/Cyrius}{Ilumina Cyrius CYP2D6 star allele caller}.
 The main difference between this function and the command line version of
 Cyrius is that logging and multi-threading are disabled in this version and
-this function requires the usage of a fasta reference file.
+this function requires the usage of a fasta reference file. Before running
+this function you must install the necessary Python dependencies using
+\code{install_cyrius()}.
 }
 \details{
 Cyrius is a tool to genotype CYP2D6 from a whole-genome sequencing (WGS) BAM file. Cyrius uses a novel method to solve the problems caused by the high sequence similarity with the pseudogene paralog CYP2D7 and thus is able to detect all star alleles, particularly those that contain structural variants, accurately. Please refer to our \href{https://www.nature.com/articles/s41397-020-00205-5}{paper} for details about the method.
