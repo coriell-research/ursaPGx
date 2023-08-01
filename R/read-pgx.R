@@ -72,6 +72,8 @@ readPGx <- function(file, gene, build = c("GRCh38", "GRCh37")) {
   stopifnot("Genome must be one of 'GRCh38' or 'GRCh37'" = build %in% c("GRCh38", "GRCh37"))
   stopifnot("Multple genes supplied to function" = length(gene) == 1)
   stopifnot("Gene not in gene list" = gene %in% availableGenes())
+  ext <- tools::file_ext(file)
+  stopifnot("File extension is not .gz . Are you sure the input file is an indexed VCF file? (e.g. file.vcf.gz)" = ext == "gz")
 
   if (gene == "CYP2D6") {
     stop("Please use `cyrius()` to perform calling for CYP2D6.")
