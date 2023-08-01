@@ -31,12 +31,15 @@ names(grch38_vcf) <- gsub("_", "*", names(grch38_vcf))
 # Read in data as ranges --------------------------------------------------
 
 # Read in separate lists for each genome build
+# These have NCBI IDs, e.g. 1, 2, 3, ...
 grch37_haplotype_ranges <- parallel::mclapply(
     grch37_vcf,
     readVcfAsVRanges,
-    genome = "hg19",
+    genome = "GRCh37",
     mc.cores = 4
 )
+
+# These have UCSC IDs, e.g. chr1, chr2, etc.
 grch38_haplotype_ranges <- parallel::mclapply(
     grch38_vcf,
     readVcfAsVRanges,
