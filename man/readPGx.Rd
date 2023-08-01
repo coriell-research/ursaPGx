@@ -29,5 +29,14 @@ PharmVar VCF files available at \url{https://www.pharmvar.org/download}.
 The "create-reference.R" file included in the data-raw directory of
 this package describes the steps used to reproduce the construction of the
 GRanges object used in this function. These GRanges objects are accessible
-via the \code{availableHaplotypeRanges()} function.
+via the \code{availableHaplotypeRanges()} function. The \code{readPGx()} 
+function will attempt to detect the type of seqLevels (chromosome names) used 
+in the sample VCF (e.g. "UCSC" type - chr1, chr2, etc. or "NCBI" type, 1, 2, 
+3, etc.) and modify the ranges of the PharmVar reference accordingly. If the
+VCF header does not define a reference then the function will attempt to use
+"NCBI" type seqlevels for GRCh37 build and "UCSC" type for GRCh38 builds 
+specified by the build argument. If multiple seqLevels are found in the VCF
+header then the function will attempt to use the first defined level. 
+seqLevels of the final PGx object are set to "UCSC" style for GRCh38 and 
+"NCBI" style for GRCh37 to ensure compatibility with downstream processing.
 }
