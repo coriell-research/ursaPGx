@@ -7,9 +7,11 @@
 readPGx(file, gene, build = c("GRCh38", "GRCh37"))
 }
 \arguments{
-\item{file}{A phased and normalized VCF file. This file must be indexed (.tbi)}
+\item{file}{An indexed, phased, and normalized VCF file. This file must have 
+an index (.tbi) in the same directory.}
 
-\item{gene}{The PGx gene to subset from VCF file. See \code{\link{availableGenes()}} for available genes.}
+\item{gene}{The PGx gene to subset from VCF file. See 
+\code{\link{availableGenes()}} for available genes.}
 
 \item{build}{The genome build. One of "GRCh38" or "GRCh37".}
 }

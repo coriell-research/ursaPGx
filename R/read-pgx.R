@@ -63,18 +63,23 @@
 #' seqLevels of the final PGx object are set to "UCSC" style for GRCh38 and 
 #' "NCBI" style for GRCh37 to ensure compatibility with downstream processing.
 #'
-#' @param file A phased and normalized VCF file. This file must be indexed (.tbi)
-#' @param gene The PGx gene to subset from VCF file. See \code{\link{availableGenes()}} for available genes.
+#' @param file An indexed, phased, and normalized VCF file. This file must have 
+#' an index (.tbi) in the same directory.
+#' @param gene The PGx gene to subset from VCF file. See 
+#' \code{\link{availableGenes()}} for available genes.
 #' @param build The genome build. One of "GRCh38" or "GRCh37".
 #' @export
 #' @return Object of class PGx
 readPGx <- function(file, gene, build = c("GRCh38", "GRCh37")) {
+  stopifnot("Only a single file can be used as input" = length(file) == 1)
   stopifnot("Genome must be one of 'GRCh38' or 'GRCh37'" = build %in% c("GRCh38", "GRCh37"))
   stopifnot("Multple genes supplied to function" = length(gene) == 1)
   stopifnot("Gene not in gene list" = gene %in% availableGenes())
-  ext <- tools::file_ext(file)
-  stopifnot("File extension is not .gz . Are you sure the input file is an indexed VCF file? (e.g. file.vcf.gz)" = ext == "gz")
 
+  if (tools::file_ext(file) == "vcf") {
+    stop("File extension is '.vcf'. Are you sure this is an indexed VCF file?")
+  }
+  
   if (gene == "CYP2D6") {
     stop("Please use `cyrius()` to perform calling for CYP2D6.")
   }
