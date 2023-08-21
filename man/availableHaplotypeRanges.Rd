@@ -19,5 +19,5 @@ Return a VRanges object for the all ranges in the haplotype definition for
 the given haplotype.
 }
 \examples{
-pgxHaplotypeRanges("CYP2C19_2")
+availableHaplotypeRanges("CYP2C19*2")
 }

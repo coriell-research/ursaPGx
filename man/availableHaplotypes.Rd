@@ -17,5 +17,5 @@ Return a vector of haplotype names (star alleles) for which an allele
 definition exists.
 }
 \examples{
-pgxHaplotypes()
+availableHaplotypes()
 }

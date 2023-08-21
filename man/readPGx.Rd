@@ -42,3 +42,12 @@ header then the function will attempt to use the first defined level.
 seqLevels of the final PGx object are set to "UCSC" style for GRCh38 and 
 "NCBI" style for GRCh37 to ensure compatibility with downstream processing.
 }
+\examples{
+\dontrun{
+# Specify the path to the indexed VCF file
+vcf <- "/path/to/vcf.gz"
+
+# Create a PGx object by specifying the desired gene
+p <- readPGx(vcf, "CYP2C9")
+}
+}

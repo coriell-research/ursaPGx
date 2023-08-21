@@ -16,5 +16,5 @@ character vector of available gene names
 Return a vector of all PGx genes for which an allele definition exists.
 }
 \examples{
-pgxGenes()
+availableGenes()
 }

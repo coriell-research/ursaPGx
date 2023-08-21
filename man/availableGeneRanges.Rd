@@ -12,7 +12,7 @@ availableGeneRanges(gene, build = c("GRCh38", "GRCh37"))
 \item{build}{Genome build. One of "GRCh38" or "GRCh37"}
 }
 \value{
-\code{GRanges} object with unique ranges for all haplotypes (star alleles)
+\code{VRanges} object with unique ranges for all haplotypes (star alleles)
 for the desired gene
 }
 \description{
@@ -24,5 +24,5 @@ returned ranges are used to collect all positions annotated in the sample
 VCF.
 }
 \examples{
-pgxGeneRanges("CYP2C19")
+availableGeneRanges("CYP2C19")
 }

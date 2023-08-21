@@ -5,7 +5,7 @@
 #' @param build Genome build. One of "GRCh38" or "GRCh37"
 #' @return character vector of available gene names
 #' @export
-#' @examples pgxGenes()
+#' @examples availableGenes()
 availableGenes <- function(build = c("GRCh38", "GRCh37")) {
   build <- match.arg(build)
   switch (build,
@@ -22,7 +22,7 @@ availableGenes <- function(build = c("GRCh38", "GRCh37")) {
 #' @param build Genome build. One of "GRCh38" or "GRCh37"
 #' @return character vector of available defined star alleles (haplotypes)
 #' @export
-#' @examples pgxHaplotypes()
+#' @examples availableHaplotypes()
 availableHaplotypes <- function(build = "GRCh38") {
   build <- match.arg(build)
   switch (build,
@@ -42,10 +42,10 @@ availableHaplotypes <- function(build = "GRCh38") {
 #' 
 #' @param gene Gene name
 #' @param build Genome build. One of "GRCh38" or "GRCh37"
-#' @return \code{GRanges} object with unique ranges for all haplotypes (star alleles)
+#' @return \code{VRanges} object with unique ranges for all haplotypes (star alleles)
 #' for the desired gene
 #' @export
-#' @examples pgxGeneRanges("CYP2C19")
+#' @examples availableGeneRanges("CYP2C19")
 availableGeneRanges <- function(gene, build = c("GRCh38", "GRCh37")) {
   build <- match.arg(build)
   grl <- switch (build,
@@ -75,7 +75,7 @@ availableGeneRanges <- function(gene, build = c("GRCh38", "GRCh37")) {
 #' @param build Genome build. One of "GRCh38" or "GRCh37"
 #' @return \code{GRanges} object with unique ranges for the given haplotype (star allele)
 #' @export
-#' @examples pgxHaplotypeRanges("CYP2C19_2")
+#' @examples availableHaplotypeRanges("CYP2C19*2")
 availableHaplotypeRanges <- function(haplotype, build = c("GRCh38", "GRCh37")) {
   build <- match.arg(build)
   grl <- switch (build,
@@ -161,6 +161,15 @@ summarizeDiplotypeCalls <- function(df, phased = TRUE) {
 #' @return DataFrame with sample names as rows and column as PGx gene with allele calls
 #' @rdname callDiplotypes
 #' @export
+#' @examples
+#' \dontrun{
+#' # Specify the path to the VCF file
+#' vcf <- "1kGP_high_coverage_Illumina.chr10.filtered.SNV_INDEL_SV_phased_panel.vcf.gz"
+#'
+# Call phased diplotypes for CYP2C8
+#'result <- callDiplotypes(vcf, gene = "CYP2C8", phased = TRUE)
+#' 
+#' }
 callDiplotypes <- function(vcf, gene, build = "GRCh38", phased = TRUE) {
     stopifnot("phased = FALSE is not yet implemented" = isTRUE(phased))
     

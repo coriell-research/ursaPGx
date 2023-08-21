@@ -26,3 +26,12 @@ diplotypes from VCF files. It wraps the following functions: (1) \code{readPGx()
 \code{convertGTtoNucleotides()} (5) \code{callPhasedDiplotypes()} and produces
 a single DataFrame with allele calls for all samples in the VCF as output.
 }
+\examples{
+\dontrun{
+# Specify the path to the VCF file
+vcf <- "1kGP_high_coverage_Illumina.chr10.filtered.SNV_INDEL_SV_phased_panel.vcf.gz"
+
+result <- callDiplotypes(vcf, gene = "CYP2C8", phased = TRUE)
+
+}
+}

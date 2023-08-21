@@ -70,6 +70,14 @@
 #' @param build The genome build. One of "GRCh38" or "GRCh37".
 #' @export
 #' @return Object of class PGx
+#' @examples
+#' \dontrun{
+#' # Specify the path to the indexed VCF file
+#' vcf <- "/path/to/vcf.gz"
+#' 
+#' # Create a PGx object by specifying the desired gene
+#' p <- readPGx(vcf, "CYP2C9")
+#' }
 readPGx <- function(file, gene, build = c("GRCh38", "GRCh37")) {
   stopifnot("Only a single file can be used as input" = length(file) == 1)
   stopifnot("Genome must be one of 'GRCh38' or 'GRCh37'" = build %in% c("GRCh38", "GRCh37"))
