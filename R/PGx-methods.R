@@ -271,8 +271,8 @@ setMethod("callPhasedDiplotypes", "PGx", function(x) {
 
   df <- pgxReferenceDataFrame(x)
   m <- as.matrix(df)
-  call1 <- vector("list", ncol(df))
-  call2 <- vector("list", ncol(df))
+  call1 <- vector("list", ncol(x))
+  call2 <- vector("list", ncol(x))
 
   for (i in seq_along(haplotypes_by_sample)) {  # each sample
     H1 <- haplotypes_by_sample[[i]]$H1
@@ -283,8 +283,8 @@ setMethod("callPhasedDiplotypes", "PGx", function(x) {
     m2 <- H2 == m
 
     # See if any alleles (columns of match matrix) completely match definition
-    c1 <- apply(m1, 2, function(x) all(x == TRUE))
-    c2 <- apply(m2, 2, function(x) all(x == TRUE))
+    c1 <- apply(m1, 2, function(x) all(x == TRUE), simplify = TRUE)
+    c2 <- apply(m2, 2, function(x) all(x == TRUE), simplify = TRUE)
 
     call1[[i]] <- c1
     call2[[i]] <- c2
