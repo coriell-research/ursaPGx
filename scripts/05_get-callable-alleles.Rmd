@@ -1,0 +1,100 @@
+---
+title: "Get all callable alleles"
+output: html_document
+date: "2023-11-13"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Load Libraries
+
+```{r}
+suppressPackageStartupMessages(library(here))
+suppressPackageStartupMessages(library(data.table))
+suppressPackageStartupMessages(devtools::load_all("."))
+```
+
+## Maps genes to chromosomes
+
+Same as in `01_call-1kGp-diplotypes.Rmd`
+
+```{r}
+# Create file paths to VCF files saved in local directory
+chroms <- c("chr10", "chr19", "chr22", "chr1", "chr11", "chr7", "chr13", "chr12")
+d <- here("data-raw", "sample_vcf")
+f <- paste0("1kGP_high_coverage_Illumina.", chroms, ".filtered.SNV_INDEL_SV_phased_panel.vcf.gz")
+files <- file.path(d, f)
+names(files) <- chroms
+
+# Mapping for chromosome to genes
+df <- data.frame(
+  chrom = c("chr19", "chr19", "chr19", "chr10", "chr10", "chr10", "chr7", 
+            "chr7", "chr19", "chr13", "chr12", "chr1"),
+  gene = c("CYP2A13", "CYP2A6", "CYP2B6", "CYP2C19", "CYP2C8", "CYP2C9",   
+           "CYP3A4" , "CYP3A5", "CYP4F2", "NUDT15", "SLCO1B1", "DPYD")
+  )
+```
+
+## Extract vector of *callable* alleles for each gene
+
+```{r}
+# Helper function to extract only the callable alleles for each gene
+getCallableAlleles <- function(x, y) {
+  p <- readPGx(file = x, gene = y)
+  p <- determineCallableAlleles(p)
+  pgxCallableAlleles(p)
+}
+
+# Extract all callable alleles for each gene
+results <- vector("list", nrow(df))
+names(results) <- df$gene
+for (i in 1:nrow(df)) {
+  chrom <- df[i, "chrom", drop = TRUE]
+  gene <- df[i, "gene", drop = TRUE]
+  results[[i]] <- getCallableAlleles(x = files[chrom], y = gene)
+}
+```
+
+## Extract *all* alleles annotated by PharmVar for each gene
+
+```{r}
+# Internal reference object mapping genes to annotated haplotype ranges
+gene_grl <- ursaPGx:::grch38_gene_grl
+defined <- lapply(gene_grl, names)
+```
+
+## Compare callable alleles (in VCF data) to defined alleles (PharmVar)
+
+```{r}
+# Get only the shared set -- excludes CYP2D6
+shared <- intersect(names(results), names(defined))
+results <- results[shared]
+defined <- defined[shared]
+
+# How many are in each set?
+n_callable <- sapply(results, length) 
+n_defined <- sapply(defined, length)
+
+# Calculate the proportion callable alleles for each gene
+propCallable <- function(x, y) {
+  length(intersect(x, y)) / length(union(x, y))
+}
+prop_called <- mapply(propCallable, x = results, y = defined)
+```
+
+Combine the results into a data.table and write out to file
+
+```{r}
+dt <- data.table(
+  gene = names(results),
+  n_callable = n_callable,
+  n_defined = n_defined,
+  prop_called = prop_called,
+  callable = sapply(results, paste, collapse = ","),
+  defined = sapply(defined, paste, collapse = ",")
+)
+setorder(dt, gene)
+fwrite(dt, here("scripts", "results", "callable-vs-defined-alleles.tsv"), sep = "\t")
+```
