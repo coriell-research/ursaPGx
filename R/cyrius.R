@@ -126,7 +126,7 @@ cyrius <- function(files, reference = NULL, genome = "hg38", output = "simple") 
         return(df)
       },
       error = function(cond) {
-        message("An error occurred when extracting json results for one of the samples:")
+        message("An error occurred when extracting json results for at least one of the samples:")
         message(conditionMessage(cond))
         message("")
         message("Returning verbose output instead of simple output.")
