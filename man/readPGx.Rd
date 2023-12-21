@@ -11,7 +11,7 @@ readPGx(file, gene, build = c("GRCh38", "GRCh37"))
 an index (.tbi) in the same directory.}
 
 \item{gene}{The PGx gene to subset from VCF file. See 
-\code{\link{availableGenes()}} for available genes.}
+\code{availableGenes()} for available genes.}
 
 \item{build}{The genome build. One of "GRCh38" or "GRCh37".}
 }

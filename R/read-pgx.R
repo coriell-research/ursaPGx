@@ -66,7 +66,7 @@
 #' @param file An indexed, phased, and normalized VCF file. This file must have 
 #' an index (.tbi) in the same directory.
 #' @param gene The PGx gene to subset from VCF file. See 
-#' \code{\link{availableGenes()}} for available genes.
+#' \code{availableGenes()} for available genes.
 #' @param build The genome build. One of "GRCh38" or "GRCh37".
 #' @export
 #' @return Object of class PGx
