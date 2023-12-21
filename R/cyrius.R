@@ -4,19 +4,19 @@
 #' This function provides an interface to the
 #' [Ilumina Cyrius CYP2D6 star allele caller](https://github.com/Illumina/Cyrius).
 #' The main difference between this function and the command line version of
-#' Cyrius is that logging and multi-threading are disabled in this version and 
-#' this function requires the usage of a fasta reference file. Before running 
+#' Cyrius is that logging and multi-threading are disabled in this version and
+#' this function requires the usage of a fasta reference file. Before running
 #' this function you must install the necessary Python dependencies using
 #' \code{install_cyrius()}.
 #'
-#' @param files Vector of file paths to BAM/CRAM files. If BAM/CRAM files vector 
+#' @param files Vector of file paths to BAM/CRAM files. If BAM/CRAM files vector
 #' is named these names will be used as Sample IDs in the final output.
-#' @param reference Path to the reference fasta file used in BAM/CRAM creation. 
+#' @param reference Path to the reference fasta file used in BAM/CRAM creation.
 #' Must be specified when using CRAM input. Default NULL.
 #' @param genome Reference genome. One of c("hg19", "hg37", "hg38"). Default "hg38"
-#' @param output Type of output to report. One of c("simple", "verbose"). If 
-#' "simple" (default) then the Cyrius "TSV" output will be returned as a 
-#' DataFrame. If "verbose" then the "JSON" output will be returned as a nested 
+#' @param output Type of output to report. One of c("simple", "verbose"). If
+#' "simple" (default) then the Cyrius "TSV" output will be returned as a
+#' DataFrame. If "verbose" then the "JSON" output will be returned as a nested
 #' list. See 'Details' for more information.
 #' @details
 #' Cyrius is a tool to genotype CYP2D6 from a whole-genome sequencing (WGS) BAM file. Cyrius uses a novel method to solve the problems caused by the high sequence similarity with the pseudogene paralog CYP2D7 and thus is able to detect all star alleles, particularly those that contain structural variants, accurately. Please refer to our [paper](https://www.nature.com/articles/s41397-020-00205-5) for details about the method.
@@ -73,7 +73,7 @@
 cyrius <- function(files, reference = NULL, genome = "hg38", output = "simple") {
   stopifnot("genome must be one of c('hg19', 'hg37', hg38')" = genome %in% c("hg38", "hg37", "hg19"))
   stopifnot("output must be one of c('simple', 'verbose')" = output %in% c("simple", "verbose"))
-  
+
   if (!all(file.exists(files))) {
     stop("BAM/CRAM files do not exist.")
   }
@@ -84,7 +84,7 @@ cyrius <- function(files, reference = NULL, genome = "hg38", output = "simple") 
   if (!all(file.exists(idx_files))) {
     stop("BAM/CRAM files are not indexed or index cannot be found in the same directory.")
   }
-  
+
   # Require reference for CRAM files
   if (any(ext == "cram")) {
     if (is.null(reference)) {
@@ -115,25 +115,36 @@ cyrius <- function(files, reference = NULL, genome = "hg38", output = "simple") 
   message("Done.")
 
   if (output == "simple") {
-    df <- S4Vectors::DataFrame(
-      row.names = names(result),
-      Sample = names(result),
-      Genotype = vapply(result, function(x) x$Genotype, FUN.VALUE = character(1)),
-      Filter = vapply(result, function(x) x$Filter, FUN.VALUE = character(1))
+    tryCatch(
+      {
+        df <- S4Vectors::DataFrame(
+          row.names = names(result),
+          Sample = names(result),
+          Genotype = vapply(result, function(x) x$Genotype, FUN.VALUE = character(1)),
+          Filter = vapply(result, function(x) x$Filter, FUN.VALUE = character(1))
+        )
+        return(df)
+      },
+      error = function(cond) {
+        message("An error occurred when extracting json results for one of the samples:")
+        message(conditionMessage(cond))
+        message("")
+        message("Returning verbose output instead of simple output.")
+        return(result)
+      }
     )
-    return(df)
   }
   return(result)
 }
 
 #' Installer function for Cyrius environment
-#' 
-#' This function will download and install the necessary dependencies for 
+#'
+#' This function will download and install the necessary dependencies for
 #' running the \code{cyrius()} function.
-#' @param method Installation method. Default ("conda"). 
-#' "auto" automatically finds a method that will work in the local environment.  
-#' Note that the "virtualenv" method is not available on Windows. One of 
-#' c("auto", "virtualenv", "conda").  
+#' @param method Installation method. Default ("conda").
+#' "auto" automatically finds a method that will work in the local environment.
+#' Note that the "virtualenv" method is not available on Windows. One of
+#' c("auto", "virtualenv", "conda").
 #' @param ... Additional arguments passed to \code{reticulate::py_install()}
 #' @export
 install_cyrius <- function(method = "conda", ...) {

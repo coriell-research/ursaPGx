@@ -7,14 +7,14 @@
 install_cyrius(method = "conda", ...)
 }
 \arguments{
-\item{method}{Installation method. Default ("conda"). 
-"auto" automatically finds a method that will work in the local environment.  
-Note that the "virtualenv" method is not available on Windows. One of 
+\item{method}{Installation method. Default ("conda").
+"auto" automatically finds a method that will work in the local environment.
+Note that the "virtualenv" method is not available on Windows. One of
 c("auto", "virtualenv", "conda").}
 
 \item{...}{Additional arguments passed to \code{reticulate::py_install()}}
 }
 \description{
-This function will download and install the necessary dependencies for 
+This function will download and install the necessary dependencies for
 running the \code{cyrius()} function.
 }
