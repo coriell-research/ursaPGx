@@ -6,6 +6,11 @@ samples using existing frameworks from the
 [PharmVar](https://www.pharmvar.org) database. This package is purpose-built for
 annotating the 1000 Genomes Project 30X phased VCF call sets from the [NYGC](https://ftp.1000genomes.ebi.ac.uk/vol1/ftp/data_collections/1000G_2504_high_coverage/working/20220422_3202_phased_SNV_INDEL_SV/).
 
+### Publication
+
+The details of the ursaPGx star-calling algorithm along with benchmark results are 
+presented in our recently published [manuscript](https://www.frontiersin.org/articles/10.3389/fbinf.2024.1351620/full)
+
 ## Data Sources
 
 Reference alleles and haplotype definitions are extracted from the most recent
