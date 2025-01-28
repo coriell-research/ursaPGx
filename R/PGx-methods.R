@@ -207,17 +207,6 @@ setMethod("convertGTtoNucleotides", "PGx", function(x) {
 
 #' Extract haplotype strings for a vector of genotype strings
 .getHaplotypes <- function(x, sep = "|") {
-  
-  # Check that all variants have matching delimiter
-  if (!all(grepl(sep, x, fixed=TRUE))) {
-    if (sep == "|") {
-      msg <- "Unphased input detected in genotype matrix"
-    } else {
-      msg <- "Phased input detected in genotype matrix"
-    }
-    stop(msg)
-  }
-  
   ss <- strsplit(x, sep, fixed = TRUE)
   h1 <- vapply(ss, function(x) x[1], FUN.VALUE = character(1))
   h2 <- vapply(ss, function(x) x[2], FUN.VALUE = character(1))
@@ -273,6 +262,16 @@ setMethod("callPhasedDiplotypes", "PGx", function(x) {
   if (!grepl("[ACGT]", GT[1, 1]))
     stop("Genotype matrix has not been converted to nucleotides. 
          Please run: `x <- convertGTtoNucleotides(x)` before calling diplotypes")
+  
+  # Replace unphased homozygous variants
+  if (!all(grepl("|", GT, fixed=TRUE))) {
+    msg <- "Unphased input detected in genotype matrix. Homozygous variants will be converted to phased input."
+    warning(msg)
+  }
+  GT[GT == "A/A"] <- "A|A"
+  GT[GT == "C/C"] <- "C|C"
+  GT[GT == "G/G"] <- "G|G"
+  GT[GT == "T/T"] <- "T|T"
 
   # Split the genotype matrix by Samples (columns)
   gt_by_sample <- asplit(GT, 2)
