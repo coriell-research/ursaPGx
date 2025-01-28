@@ -207,6 +207,17 @@ setMethod("convertGTtoNucleotides", "PGx", function(x) {
 
 #' Extract haplotype strings for a vector of genotype strings
 .getHaplotypes <- function(x, sep = "|") {
+  
+  # Check that all variants have matching delimiter
+  if (!all(grepl(sep, x, fixed=TRUE))) {
+    if (sep == "|") {
+      msg <- "Unphased input detected in genotype matrix"
+    } else {
+      msg <- "Phased input detected in genotype matrix"
+    }
+    stop(msg)
+  }
+  
   ss <- strsplit(x, sep, fixed = TRUE)
   h1 <- vapply(ss, function(x) x[1], FUN.VALUE = character(1))
   h2 <- vapply(ss, function(x) x[2], FUN.VALUE = character(1))
