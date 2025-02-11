@@ -116,11 +116,11 @@ successfully. In order to run `cyrius()`, first install the necessary
 dependencies using the `install_cyrius()` function and then activate the environment:
 
 ```r
-# Install the Cyrius dependencies into a conda/virtualenv called 'r-reticulate'
+# Install the Cyrius dependencies into a conda/virtualenv called 'r-ursaPGx'
 install_cyrius()
 
-# Activate the 'r-reticulate' environment
-reticulate::use_condaenv("r-reticulate")
+# Activate the 'r-ursaPGx' environment
+reticulate::use_condaenv("r-ursaPGx")
 ```
 
 Now you're ready to use `cyrius()` to call CYP2D6 alleles:
