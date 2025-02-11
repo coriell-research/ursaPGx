@@ -9,12 +9,11 @@ annotating the 1000 Genomes Project 30X phased VCF call sets from the [NYGC](htt
 ### Publication
 
 The details of the ursaPGx star-calling algorithm along with benchmark results are 
-presented in our recently published [manuscript](https://www.frontiersin.org/articles/10.3389/fbinf.2024.1351620/full)
+presented in our [manuscript](https://www.frontiersin.org/articles/10.3389/fbinf.2024.1351620/full)
 
 ## Data Sources
 
-Reference alleles and haplotype definitions are extracted from the most recent
-version of [PharmVar](https://www.pharmvar.org/download). See the
+Reference alleles and haplotype definitions are extracted from [PharmVar](https://www.pharmvar.org/download). See the
 `create-reference.R` function in the data-raw directory for the exact script.
 
 The current version of the reference haplotypes from PharmVar is: **Version 5.2.13**
