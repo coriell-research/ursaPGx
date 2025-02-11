@@ -116,14 +116,14 @@ successfully. In order to run `cyrius()`, first install the necessary
 dependencies using the `install_cyrius()` function and then activate the environment:
 
 ```r
-# Install the Cyrius dependencies into a conda/virtualenv called 'r-ursaPGx'
+# Install the Cyrius dependencies into a conda env called 'r-ursaPGx'
 install_cyrius()
 
 # Activate the 'r-ursaPGx' environment
 reticulate::use_condaenv("r-ursaPGx")
 ```
 
-Now you're ready to use `cyrius()` to call CYP2D6 alleles:
+Now you're ready to use `cyrius()` to call CYP2D6 alleles from R:
 
 ```r
 # Create a vector of BAM/CRAM file paths
@@ -132,7 +132,7 @@ cram <- c("HG00276.final.cram", "HG00436.final.cram", "HG00589.final.cram")
 # Optionally name the input files
 names(cram) <- c("HG00276", "HG00436", "HG00589")
 
-# Specify the path to the reference fasta file used in BAM/CRAM creation
+# Specify the path to the reference fasta file used in CRAM creation
 fa <- "GRCh38_full_analysis_set_plus_decoy_hla.fa"
 
 # Call CYP2D6 for each of the samples using Cyrius
