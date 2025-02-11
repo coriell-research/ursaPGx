@@ -3,8 +3,9 @@
 The goal of this package is to use phased VCF data to assign star alleles to
 samples using existing frameworks from the
 [Bioconductor](https://www.bioconductor.org/) ecosystem and
-[PharmVar](https://www.pharmvar.org) database. This package is purpose-built for
-annotating the 1000 Genomes Project 30X phased VCF call sets from the [NYGC](https://ftp.1000genomes.ebi.ac.uk/vol1/ftp/data_collections/1000G_2504_high_coverage/working/20220422_3202_phased_SNV_INDEL_SV/).
+[PharmVar](https://www.pharmvar.org) database. This package was purpose-built for
+annotating the 1000 Genomes Project 30X phased VCF call sets from the [NYGC](https://ftp.1000genomes.ebi.ac.uk/vol1/ftp/data_collections/1000G_2504_high_coverage/working/20220422_3202_phased_SNV_INDEL_SV/) but we have designed the functions to be generally applicable to 
+other datasets.
 
 ### Publication
 
