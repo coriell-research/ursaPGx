@@ -21,11 +21,14 @@ The current version of the reference haplotypes from PharmVar is: **Version 5.2.
 
 ## Installation
 
-This package is still in active development but can be installed with:
+This package is still in active development and can be installed with:
 
 ```r
-# Install ursaPGx from github
-devtools::install_github("coriell-research/ursaPGx")
+if (!require("pak", quietly = TRUE)) {
+  install.packages("pak")
+}
+
+pak::pak("coriell-research/ursaPGx")
 ```
 
 ## Quick Start
