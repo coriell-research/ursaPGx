@@ -1,7 +1,7 @@
 Package: ursaPGx
 Type: Package
 Title: Annotate PGx star alleles using phased VCFs
-Version: 0.1.0
+Version: 0.1.1
 Author: c(
     person("Gennaro", "Calendo", email = "gcalendo@coriell.org",
            role = c("aut", "cre")),
@@ -17,7 +17,7 @@ Suggests:
 Config/testthat/edition: 3
 biocViews:
 Depends: 
-    R (>= 2.10),
+    R (>= 3.5.0),
     VariantAnnotation
 RoxygenNote: 7.3.2
 Imports: 
