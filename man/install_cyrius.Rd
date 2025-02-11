@@ -4,9 +4,15 @@
 \alias{install_cyrius}
 \title{Installer function for Cyrius environment}
 \usage{
-install_cyrius(method = "conda", ...)
+install_cyrius(envname = "r-ursaPGx", method = "conda", ...)
 }
 \arguments{
+\item{envname}{The name, or full path, of the environment in which Python
+packages are to be installed. The default is "r-ursaPGx", probably don't
+change that unless you have a good reason. When NULL, the active environment
+as set by the RETICULATE_PYTHON_ENV variable will be used; if that is unset,
+then the "r-reticulate" environment will be used.}
+
 \item{method}{Installation method. Default ("conda").
 "auto" automatically finds a method that will work in the local environment.
 Note that the "virtualenv" method is not available on Windows. One of

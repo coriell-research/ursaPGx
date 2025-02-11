@@ -141,15 +141,21 @@ cyrius <- function(files, reference = NULL, genome = "hg38", output = "simple") 
 #'
 #' This function will download and install the necessary dependencies for
 #' running the \code{cyrius()} function.
+#' @param envname The name, or full path, of the environment in which Python
+#' packages are to be installed. The default is "r-ursaPGx", probably don't
+#' change that unless you have a good reason. When NULL, the active environment
+#' as set by the RETICULATE_PYTHON_ENV variable will be used; if that is unset,
+#' then the "r-reticulate" environment will be used.
 #' @param method Installation method. Default ("conda").
 #' "auto" automatically finds a method that will work in the local environment.
 #' Note that the "virtualenv" method is not available on Windows. One of
 #' c("auto", "virtualenv", "conda").
 #' @param ... Additional arguments passed to \code{reticulate::py_install()}
 #' @export
-install_cyrius <- function(method = "conda", ...) {
+install_cyrius <- function(envname = "r-ursaPGx", method = "conda", ...) {
   reticulate::py_install(
     method = method,
+    envname = envname,
     packages = c("pysam", "statsmodels", "scipy"),
     channel = c("conda-forge", "anaconda", "bioconda"),
     ...
