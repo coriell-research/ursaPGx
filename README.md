@@ -17,7 +17,7 @@ presented in our [manuscript](https://www.frontiersin.org/articles/10.3389/fbinf
 Reference alleles and haplotype definitions are extracted from [PharmVar](https://www.pharmvar.org/download). See the
 `create-reference.R` function in the data-raw directory for the exact script.
 
-The current version of the reference haplotypes from PharmVar is: **Version 5.2.13**
+The current version of the reference haplotypes from PharmVar is: **Version 6.2.3**
 
 ## Installation
 
