@@ -103,6 +103,16 @@ head(result)
 >HG00100   *1|*1
 >HG00101   *1|*1
 >HG00102  *17|*1
+
+# Examine exactly which positions matched all samples and all haplotypes
+details <- detailPhasedCalls(CYP2C19)
+
+# Returns a position by star allele matrix for all variants on the first 
+# haplotype of sample HG00096
+details[["HG00096"]][["H1"]]
+
+# Checking this result yields the same call as above
+which(apply(details[["HG00096"]][["H1"]], 2, all))  # CYP2C19*2
 ```
 
 ## CYP2D6 
