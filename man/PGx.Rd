@@ -14,7 +14,7 @@ constructor functions, i.e. \code{readPGx()}.
 \section{Slots}{
 
 \describe{
-\item{\code{pgxGene}}{The PGx gene used to construct the PGx object. See \code{pgxGenes()} for available genes.}
+\item{\code{pgxGene}}{The PGx gene used to construct the PGx object. See \code{availableGenes()} for available genes.}
 
 \item{\code{pgxBuild}}{The genome build of the PGx object.}
 

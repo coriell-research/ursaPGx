@@ -5,7 +5,7 @@
 #' of the PGx class but instead the PGx class will be created by one of the
 #' constructor functions, i.e. \code{readPGx()}.
 #'
-#' @slot pgxGene The PGx gene used to construct the PGx object. See \code{pgxGenes()} for available genes.
+#' @slot pgxGene The PGx gene used to construct the PGx object. See \code{availableGenes()} for available genes.
 #' @slot pgxBuild The genome build of the PGx object.
 #' @slot pgxCallableAlleles Character vector of all star alleles that are able to be called
 #' @slot pgxReferenceDataFrame DataFrame containing reference bases at each position for all callable alleles
