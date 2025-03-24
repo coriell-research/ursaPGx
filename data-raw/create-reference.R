@@ -6,7 +6,7 @@ suppressPackageStartupMessages(library(VariantAnnotation))
 
 # File operations ---------------------------------------------------------
 fpaths <- list.files(
-    path = "data-raw/pharmvar-5.2.13", 
+    path = "data-raw/pharmvar-6.2.3", 
     pattern = "*.vcf",
     recursive = TRUE,
     full.names = TRUE
