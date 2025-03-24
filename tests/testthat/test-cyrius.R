@@ -1,6 +1,6 @@
 test_that("Cyrius runs", {
     # Ensure environment is loaded -- this can be modified later
-    reticulate::use_condaenv("r-reticulate")
+    reticulate::use_condaenv("r-ursaPGx")
     
     cram <- list.files(
         path = here::here("data-raw", "sample_cram"), 
