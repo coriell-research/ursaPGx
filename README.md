@@ -104,7 +104,8 @@ head(result)
 >HG00101   *1|*1
 >HG00102  *17|*1
 
-# Examine exactly which positions matched all samples and all haplotypes
+# Examine exactly which positions matched for all samples and all haplotypes
+# of each star allele
 details <- detailPhasedCalls(CYP2C19)
 
 # Returns a position by star allele matrix for all variants on the first 
