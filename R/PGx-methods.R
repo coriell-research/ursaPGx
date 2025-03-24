@@ -293,8 +293,8 @@ setMethod("callPhasedDiplotypes", "PGx", function(x) {
     m2 <- H2 == m
 
     # See if any alleles (columns of match matrix) completely match definition
-    c1 <- apply(m1, 2, function(x) all(x == TRUE), simplify = TRUE)
-    c2 <- apply(m2, 2, function(x) all(x == TRUE), simplify = TRUE)
+    c1 <- apply(m1, 2, all, simplify = TRUE)
+    c2 <- apply(m2, 2, all, simplify = TRUE)
 
     call1[[i]] <- c1
     call2[[i]] <- c2
@@ -307,5 +307,50 @@ setMethod("callPhasedDiplotypes", "PGx", function(x) {
   result <- S4Vectors::DataFrame(Call = allele, row.names = colnames(x))
   colnames(result) <- pgxGene(x)
 
+  return(result)
+})
+
+
+#' Detail phased diplotype calls
+#'
+#' This method returns a position by star allele boolean matrix for each 
+#' haplotype for all samples in the object indicating which positions exactly 
+#' match the reference DataFrame.  
+#'
+#' @export
+#' @rdname detailPhasedCalls
+#' @return List of lists of matrices, one element for each sample in the PGx 
+#' object. Each element contains a position by star allele boolean matrix for 
+#' each haplotype.
+setMethod("detailPhasedCalls", "PGx", function(x) {
+  if (!x@hasReferenceDataFrame)
+    stop("A reference DataFrame has not yet been generated.
+           Please run: `x <- buildReferenceDataFrame(x)` before calling diplotypes")
+  
+  GT <- VariantAnnotation::geno(x)$GT
+  if (!grepl("[ACGT]", GT[1, 1]))
+    stop("Genotype matrix has not been converted to nucleotides. 
+         Please run: `x <- convertGTtoNucleotides(x)` before calling diplotypes")
+
+  if (!all(grepl("|", GT, fixed=TRUE))) {
+    msg <- "Unphased input detected in genotype matrix. Homozygous variants will be converted to phased input."
+    warning(msg)
+  }
+  GT[GT == "A/A"] <- "A|A"
+  GT[GT == "C/C"] <- "C|C"
+  GT[GT == "G/G"] <- "G|G"
+  GT[GT == "T/T"] <- "T|T"
+  
+  df <- pgxReferenceDataFrame(x)
+  m <- as.matrix(df)
+  gt_by_sample <- asplit(GT, 2)
+  haplotypes_by_sample <- lapply(gt_by_sample, .getHaplotypes)
+  
+  result <- lapply(haplotypes_by_sample, function(x) {
+    call1 <- x[["H1"]] == m
+    call2 <- x[["H2"]] == m
+    list(H1 = call1, H2 = call2)
+  })
+  
   return(result)
 })

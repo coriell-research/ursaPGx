@@ -33,3 +33,6 @@ setGeneric("callPhasedDiplotypes", function(x) standardGeneric("callPhasedDiplot
 
 #' @export
 setGeneric("pgxGenotypeMatrix", function(x) standardGeneric("pgxGenotypeMatrix"))
+
+#' @export
+setGeneric("detailPhasedCalls", function(x) standardGeneric("detailPhasedCalls"))
