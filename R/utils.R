@@ -9,8 +9,8 @@
 availableGenes <- function(build = c("GRCh38", "GRCh37")) {
   build <- match.arg(build)
   switch (build,
-    GRCh38 = names(ursaPGx:::grch38_gene_grl),
-    GRCh37 = names(ursaPGx:::grch37_gene_grl)
+    GRCh38 = names(grch38_gene_grl),
+    GRCh37 = names(grch37_gene_grl)
   )
 }
 
@@ -26,8 +26,8 @@ availableGenes <- function(build = c("GRCh38", "GRCh37")) {
 availableHaplotypes <- function(build = "GRCh38") {
   build <- match.arg(build)
   switch (build,
-    GRCh38 = names(ursaPGx:::grch38_haplotype_grl),
-    GRCh37 = names(ursaPGx:::grch37_haplotype_grl)
+    GRCh38 = names(grch38_haplotype_grl),
+    GRCh37 = names(grch37_haplotype_grl)
   )
 }
 
@@ -45,12 +45,13 @@ availableHaplotypes <- function(build = "GRCh38") {
 #' @return \code{VRanges} object with unique ranges for all haplotypes (star alleles)
 #' for the desired gene
 #' @export
+#' @importFrom GenomicRanges seqnames ranges strand seqinfo
 #' @examples availableGeneRanges("CYP2C19")
 availableGeneRanges <- function(gene, build = c("GRCh38", "GRCh37")) {
   build <- match.arg(build)
   grl <- switch (build,
-    GRCh38 = ursaPGx:::grch38_gene_grl,
-    GRCh37 = ursaPGx:::grch37_gene_grl
+    GRCh38 = grch38_gene_grl,
+    GRCh37 = grch37_gene_grl
   )
   stopifnot("Gene must be one of availableGenes()" = gene %in% availableGenes(build))
   uniq <- unique(unlist(grl[[gene]]))
@@ -79,8 +80,8 @@ availableGeneRanges <- function(gene, build = c("GRCh38", "GRCh37")) {
 availableHaplotypeRanges <- function(haplotype, build = c("GRCh38", "GRCh37")) {
   build <- match.arg(build)
   grl <- switch (build,
-    GRCh38 = ursaPGx:::grch38_haplotype_grl,
-    GRCh37 = ursaPGx:::grch37_haplotype_grl
+    GRCh38 = grch38_haplotype_grl,
+    GRCh37 = grch37_haplotype_grl
     )
   stopifnot("Haplotype must be one of pgxHaplotypes()" = haplotype %in% availableHaplotypes(build))
   grl[[haplotype]]
@@ -92,6 +93,7 @@ availableHaplotypeRanges <- function(haplotype, build = c("GRCh38", "GRCh37")) {
 #' @param phased Should the output delimiter indicate that the data are phased 
 #' by splitting the calls using the pipe ("|") symbol. Default TRUE. If FALSE 
 #' then the "/" symbol will be used as a delimiter.
+#' @noRd
 .uniqueCalls <- function(x, phased, ignore_nested) {
     ss <- strsplit(x, "[\\|/]")
     
@@ -132,6 +134,7 @@ availableHaplotypeRanges <- function(haplotype, build = c("GRCh38", "GRCh37")) {
 #' the data was phased, i.e. should the output delimiter be "|". If FALSE the 
 #' output delimter is "/"
 #' @return DataFrame with summarized calls for each sample
+#' @noRd
 summarizeDiplotypeCalls <- function(df, phased = TRUE) {
     by_sample <- by(
         data = df, 
@@ -140,7 +143,7 @@ summarizeDiplotypeCalls <- function(df, phased = TRUE) {
         simplify = FALSE
         )
     calls <- sapply(by_sample, .uniqueCalls, phased = phased, simplify = TRUE)
-    DF <- DataFrame(row.names = rownames(df), Call = calls)
+    DF <- S4Vectors::DataFrame(row.names = rownames(df), Call = calls)
     
     return(DF)
 }

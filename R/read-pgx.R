@@ -4,6 +4,7 @@
 #' importing the data. This step is necessary since we use ranges as a param
 #' argument to the readVcf function which requires the same seqLevels in both
 #' the reference ranges and the input VCF to be identical.
+#' @noRd
 .checkSwapSeqLevels <- function(file, ref, build) {
   vcf_head <- VariantAnnotation::scanVcfHeader(file)
   vcf_ref <- VariantAnnotation::reference(vcf_head)
@@ -41,10 +42,10 @@
 
 #' Read in PGx Data from VCF File
 #'
-#' This function is a wrapper around \link[VariantAnnotation]{readVcf()} that
+#' This function is a wrapper around \code{\link[VariantAnnotation]{readVcf}} that
 #' reads only the PGx locations into a PGx object. The user must provide an
 #' indexed VCF file. The path to the indexed VCF file gets passed to
-#' \link[Rsamtools]{TabixFile()} which is then used as the file argument to
+#' \code{\link[Rsamtools]{TabixFile}} which is then used as the file argument to
 #' \code{readVcf()}.
 #'
 #' @details The PGx locations used to subset the input VCF file are derived from

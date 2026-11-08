@@ -1,5 +1,5 @@
-#' Show method for PGx objects
-#' @rdname PGx-class
+#' @rdname PGx
+#' @importFrom utils head
 #' @export
 setMethod("show", "PGx", function(object) {
   n_alleles <- length(object@pgxCallableAlleles)
@@ -23,6 +23,7 @@ setMethod("show", "PGx", function(object) {
 #'
 #' The 'pgxGene' slot of a PGx object contains the gene name for which the PGx
 #' locations were extracted from the input VCF.
+#' @param x A PGx object.
 #' @export
 #' @rdname pgxGene
 #' @return Name of the PGx gene
@@ -32,6 +33,7 @@ setMethod("pgxGene", "PGx", function(x) x@pgxGene)
 #'
 #' The pgxBuild slot contains the build information for which the PGx object
 #' is instantiated with.
+#' @param x A PGx object.
 #' @export
 #' @rdname pgxBuild
 #' @return Name of the genome build
@@ -42,13 +44,16 @@ setMethod("pgxBuild", "PGx", function(x) x@pgxBuild)
 #' The pgxCallableAlleles slot contains a character vector of allele names for all
 #' allele definitions that are completely represented in the sample VCF and are
 #' thus deemed 'callable'.
+#' @param x A PGx object.
+#' @param value Character vector of callable alleles. Each must be one of
+#' \code{availableHaplotypes()}.
+#' @param ... Not used.
 #' @export
 #' @rdname pgxCallableAlleles
 #' @return Character vector of alleles that can be called
 setMethod("pgxCallableAlleles", "PGx", function(x) x@pgxCallableAlleles)
 
-#' Setter method for pgxCallableAlleles slot of PGx object
-#'
+#' @rdname pgxCallableAlleles
 #' @export
 setReplaceMethod("pgxCallableAlleles", "PGx", function(x, value) {
   x@pgxCallableAlleles <- value
@@ -60,13 +65,15 @@ setReplaceMethod("pgxCallableAlleles", "PGx", function(x, value) {
 #'
 #' The pgxReferenceDataFrame contains the expanded reference strings for every
 #' callable allele of the PGx object
+#' @param x A PGx object.
+#' @param value A DataFrame of reference haplotype definitions.
+#' @param ... Not used.
 #' @export
 #' @rdname pgxReferenceDataFrame
 #' @return data.frame of positions by callable haplotypes
 setMethod("pgxReferenceDataFrame", "PGx", function(x) x@pgxReferenceDataFrame)
 
-#' Setter method for pgxReferenceDataFrame slot of PGx object
-#'
+#' @rdname pgxReferenceDataFrame
 #' @export
 setReplaceMethod("pgxReferenceDataFrame", "PGx", function(x, value) {
   x@pgxReferenceDataFrame <- value
@@ -77,6 +84,8 @@ setReplaceMethod("pgxReferenceDataFrame", "PGx", function(x, value) {
 #' Getter method for pgxGenotypeMatrix
 #' 
 #' This method is simply a wrapper around \code{geno(p)$GT}
+#' @param x A PGx object.
+#' @export
 #' @rdname pgxGenotypeMatrix
 #' @return position by sample matrix containing genotypes for all samples in the
 #' PGx object
@@ -85,6 +94,7 @@ setMethod("pgxGenotypeMatrix", "PGx", function(x) {
 })
 
 #' Extract a GRangesList for all defined haplotypes of the PGx object
+#' @noRd
 .extractHaplotypeRanges <- function(x) {
   if (pgxGene(x) == "DPYD") {
     # Only gene with rs ids as names
@@ -100,6 +110,7 @@ setMethod("pgxGenotypeMatrix", "PGx", function(x) {
 }
 
 #' Determine if one set of ranges completely encompasses another
+#' @noRd
 .isCallable <- function(q, s) {
   ov <- IRanges::subsetByOverlaps(q, s, type = "equal")
   if (length(unique(ov)) == length(s)) {
@@ -112,6 +123,7 @@ setMethod("pgxGenotypeMatrix", "PGx", function(x) {
 #' Callable alleles are alleles where all defined positions are present in the
 #' sample VCF. The function will also add the vector of the callable alleles to
 #' the pgxCallableAlleles slot of the PGx object
+#' @param x A PGx object.
 #' @export
 #' @rdname determineCallableAlleles
 #' @return PGx object with pgxCallableAlleles slot filled
@@ -133,6 +145,7 @@ setMethod("determineCallableAlleles", "PGx", function(x) {
 #' sample VCF and columns for every callable allele haplotype. Since not all
 #' positions are present in every haplotype, missing positions for each
 #' haplotype are filled in with reference bases.
+#' @param x A PGx object on which \code{determineCallableAlleles()} has been run.
 #' @export
 #' @rdname buildReferenceDataFrame
 #' @return DataFrame containing haplotype definitions
@@ -182,7 +195,11 @@ setMethod("buildReferenceDataFrame", "PGx", function(x) {
 
 #' Convert genotype calls to nucleotides
 #'
+#' @param x A PGx object.
+#' @param value Replacement value.
+#' @param ... Not used.
 #' @export
+#' @importFrom VariantAnnotation geno<-
 #' @rdname convertGTtoNucleotides
 #' @return PGx object with geno(x)$GT converted to nucleotide representation
 setMethod("convertGTtoNucleotides", "PGx", function(x) {
@@ -206,6 +223,7 @@ setMethod("convertGTtoNucleotides", "PGx", function(x) {
 })
 
 #' Extract haplotype strings for a vector of genotype strings
+#' @noRd
 .getHaplotypes <- function(x, sep = "|") {
   ss <- strsplit(x, sep, fixed = TRUE)
   h1 <- vapply(ss, function(x) x[1], FUN.VALUE = character(1))
@@ -216,6 +234,7 @@ setMethod("convertGTtoNucleotides", "PGx", function(x) {
 }
 
 #' Convert the boolean calls to a star alleles
+#' @noRd
 .boolToStar <- function(x, gene) {
   idx <- which(x == TRUE)
   if (length(idx) > 0) {
@@ -249,6 +268,8 @@ setMethod("convertGTtoNucleotides", "PGx", function(x) {
 #' PGx object and the phased diplotype calls. If no exact matches are found for 
 #' any of the callable alleles then the resulting diplotype called is marked as
 #' ambiguous ("Amb")
+#' @param x A PGx object on which \code{buildReferenceDataFrame()} and
+#' \code{convertGTtoNucleotides()} have been run.
 #' @export
 #' @rdname callPhasedDiplotypes
 #' @return DataFrame of diplotype calls for each sample in the PGx object
@@ -315,8 +336,10 @@ setMethod("callPhasedDiplotypes", "PGx", function(x) {
 #'
 #' This method returns a position by star allele boolean matrix for each 
 #' haplotype for all samples in the object indicating which positions exactly 
-#' match the reference DataFrame.  
+#' match the reference DataFrame.
 #'
+#' @param x A PGx object on which \code{buildReferenceDataFrame()} and
+#' \code{convertGTtoNucleotides()} have been run.
 #' @export
 #' @rdname detailPhasedCalls
 #' @return List of lists of matrices, one element for each sample in the PGx 

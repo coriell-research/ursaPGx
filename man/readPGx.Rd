@@ -19,10 +19,10 @@ an index (.tbi) in the same directory.}
 Object of class PGx
 }
 \description{
-This function is a wrapper around \link[VariantAnnotation]{readVcf()} that
+This function is a wrapper around \code{\link[VariantAnnotation]{readVcf}} that
 reads only the PGx locations into a PGx object. The user must provide an
 indexed VCF file. The path to the indexed VCF file gets passed to
-\link[Rsamtools]{TabixFile()} which is then used as the file argument to
+\code{\link[Rsamtools]{TabixFile}} which is then used as the file argument to
 \code{readVcf()}.
 }
 \details{

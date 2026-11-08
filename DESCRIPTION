@@ -21,10 +21,15 @@ Depends:
     R (>= 3.5.0),
     VariantAnnotation
 Imports:
+    GenomeInfoDb,
     GenomicRanges,
+    IRanges,
     methods,
     reticulate (>= 1.41),
-    S4Vectors
+    Rsamtools,
+    S4Vectors,
+    SummarizedExperiment,
+    utils
 SystemRequirements: Python (>= 3.9) with numpy, scipy, pysam, and
     statsmodels; installed automatically by reticulate via uv.
 Config/roxygen2/version: 8.1.1

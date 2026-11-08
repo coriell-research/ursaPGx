@@ -9,6 +9,16 @@
 #' @slot pgxBuild The genome build of the PGx object.
 #' @slot pgxCallableAlleles Character vector of all star alleles that are able to be called
 #' @slot pgxReferenceDataFrame DataFrame containing reference bases at each position for all callable alleles
+#' @slot hasCallableAlleles Logical. Has \code{determineCallableAlleles()} been run?
+#' @slot hasReferenceDataFrame Logical. Has \code{buildReferenceDataFrame()} been run?
+#' @param vcf A \code{CollapsedVCF} object.
+#' @param pgxBuild The genome build. One of "GRCh38" or "GRCh37".
+#' @param pgxGene The PGx gene. See \code{availableGenes()}.
+#' @param pgxCallableAlleles Character vector of callable star alleles.
+#' @param pgxReferenceDataFrame DataFrame of reference haplotype definitions.
+#' @param hasCallableAlleles Logical. Have callable alleles been determined?
+#' @param hasReferenceDataFrame Logical. Has the reference DataFrame been built?
+#' @param object A PGx object.
 #' @rdname PGx
 #' @aliases PGx-class
 #' @export
@@ -27,8 +37,10 @@
   contains = "CollapsedVCF"
 )
 
+#' @rdname PGx
 #' @export
 #' @importFrom GenomicRanges GRanges
+#' @importFrom VariantAnnotation VCF
 #' @importClassesFrom VariantAnnotation VCF
 PGx <- function(
         vcf = VCF(collapsed = TRUE), 

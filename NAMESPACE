@@ -33,9 +33,21 @@ exportMethods(determineCallableAlleles)
 exportMethods(pgxBuild)
 exportMethods(pgxCallableAlleles)
 exportMethods(pgxGene)
+exportMethods(pgxGenotypeMatrix)
 exportMethods(pgxReferenceDataFrame)
 exportMethods(show)
 import(methods)
 importClassesFrom(VariantAnnotation,CollapsedVCF)
 importClassesFrom(VariantAnnotation,VCF)
-importFrom(GenomicRanges,GRanges)
+importFrom(GenomicRanges,
+  GRanges,
+  ranges,
+  seqinfo,
+  seqnames,
+  strand
+)
+importFrom(VariantAnnotation,
+  "geno<-",
+  VCF
+)
+importFrom(utils,head)
