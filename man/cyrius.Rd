@@ -25,9 +25,21 @@ This function provides an interface to the
 \href{https://github.com/Illumina/Cyrius}{Ilumina Cyrius CYP2D6 star allele caller}.
 The main difference between this function and the command line version of
 Cyrius is that logging and multi-threading are disabled in this version and
-this function requires the usage of a fasta reference file. Before running
-this function you must install the necessary Python dependencies using
-\code{install_cyrius()}.
+this function requires the usage of a fasta reference file.
+
+Cyrius' Python dependencies (numpy, scipy, pysam, statsmodels) are declared
+with \code{reticulate::py_require()} when ursaPGx is loaded. On the first
+call to \code{cyrius()} reticulate uses \href{https://docs.astral.sh/uv/}{uv} to
+build a cached, ephemeral Python environment satisfying these requirements
+(an internet connection is needed the first time). No manual installation
+is required.
+
+To use your own Python environment instead, select it with
+\code{reticulate::use_condaenv()}, \code{reticulate::use_virtualenv()}, or
+\code{reticulate::use_python()} (or set \code{RETICULATE_PYTHON}) before
+the first call to \code{cyrius()}. That environment must provide the
+packages listed above. Windows is not supported because pysam is not
+available for Windows.
 }
 \details{
 Cyrius is a tool to genotype CYP2D6 from a whole-genome sequencing (WGS) BAM file. Cyrius uses a novel method to solve the problems caused by the high sequence similarity with the pseudogene paralog CYP2D7 and thus is able to detect all star alleles, particularly those that contain structural variants, accurately. Please refer to our \href{https://www.nature.com/articles/s41397-020-00205-5}{paper} for details about the method.

@@ -1,8 +1,8 @@
 Package: ursaPGx
 Type: Package
 Title: Annotate PGx star alleles using phased VCFs
-Version: 0.2.1
-Author: c(
+Version: 0.3.0
+Authors@R: c(
     person("Gennaro", "Calendo", email = "gcalendo@coriell.org",
            role = c("aut", "cre")),
     person("Coriell Institute for Medical Research", role = c("cph", "fnd")))
@@ -12,13 +12,19 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 BugReports: https://github.com/coriell-research/ursaPGx/issues
-Suggests: 
-    testthat (>= 3.0.0)
+Suggests:
+    testthat (>= 3.0.0),
+    here
 Config/testthat/edition: 3
 biocViews:
 Depends: 
     R (>= 3.5.0),
     VariantAnnotation
-RoxygenNote: 7.3.2
-Imports: 
-    reticulate
+Imports:
+    GenomicRanges,
+    methods,
+    reticulate (>= 1.41),
+    S4Vectors
+SystemRequirements: Python (>= 3.9) with numpy, scipy, pysam, and
+    statsmodels; installed automatically by reticulate via uv.
+Config/roxygen2/version: 8.1.1

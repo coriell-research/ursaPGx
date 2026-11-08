@@ -5,9 +5,21 @@
 #' [Ilumina Cyrius CYP2D6 star allele caller](https://github.com/Illumina/Cyrius).
 #' The main difference between this function and the command line version of
 #' Cyrius is that logging and multi-threading are disabled in this version and
-#' this function requires the usage of a fasta reference file. Before running
-#' this function you must install the necessary Python dependencies using
-#' \code{install_cyrius()}.
+#' this function requires the usage of a fasta reference file.
+#'
+#' Cyrius' Python dependencies (numpy, scipy, pysam, statsmodels) are declared
+#' with \code{reticulate::py_require()} when ursaPGx is loaded. On the first
+#' call to \code{cyrius()} reticulate uses [uv](https://docs.astral.sh/uv/) to
+#' build a cached, ephemeral Python environment satisfying these requirements
+#' (an internet connection is needed the first time). No manual installation
+#' is required.
+#'
+#' To use your own Python environment instead, select it with
+#' \code{reticulate::use_condaenv()}, \code{reticulate::use_virtualenv()}, or
+#' \code{reticulate::use_python()} (or set \code{RETICULATE_PYTHON}) before
+#' the first call to \code{cyrius()}. That environment must provide the
+#' packages listed above. Windows is not supported because pysam is not
+#' available for Windows.
 #'
 #' @param files Vector of file paths to BAM/CRAM files. If BAM/CRAM files vector
 #' is named these names will be used as Sample IDs in the final output.
@@ -78,11 +90,26 @@ cyrius <- function(files, reference = NULL, genome = "hg38", output = "simple") 
     stop("BAM/CRAM files do not exist.")
   }
 
-  ext <- tools::file_ext(files)
-  idx <- ifelse(ext == "bam", "bai", "crai")
-  idx_files <- paste(files, idx, sep = ".")
-  if (!all(file.exists(idx_files))) {
-    stop("BAM/CRAM files are not indexed or index cannot be found in the same directory.")
+  ext <- tolower(tools::file_ext(files))
+  if (!all(ext %in% c("bam", "cram"))) {
+    stop("Input files must have a .bam or .cram extension.")
+  }
+
+  # Accept the index locations htslib searches by default, e.g. for x.bam:
+  # x.bam.bai, x.bai, x.bam.csi, x.csi; for x.cram: x.cram.crai, x.crai
+  has_index <- vapply(seq_along(files), function(i) {
+    idx_ext <- if (ext[i] == "bam") c("bai", "csi") else "crai"
+    candidates <- c(
+      paste(files[i], idx_ext, sep = "."),
+      paste(tools::file_path_sans_ext(files[i]), idx_ext, sep = ".")
+    )
+    any(file.exists(candidates))
+  }, FUN.VALUE = logical(1))
+  if (!all(has_index)) {
+    stop(
+      "BAM/CRAM files are not indexed or index cannot be found in the same directory: ",
+      paste(files[!has_index], collapse = ", ")
+    )
   }
 
   # Require reference for CRAM files
@@ -135,29 +162,4 @@ cyrius <- function(files, reference = NULL, genome = "hg38", output = "simple") 
     )
   }
   return(result)
-}
-
-#' Installer function for Cyrius environment
-#'
-#' This function will download and install the necessary dependencies for
-#' running the \code{cyrius()} function.
-#' @param envname The name, or full path, of the environment in which Python
-#' packages are to be installed. The default is "r-ursaPGx", probably don't
-#' change that unless you have a good reason. When NULL, the active environment
-#' as set by the RETICULATE_PYTHON_ENV variable will be used; if that is unset,
-#' then the "r-reticulate" environment will be used.
-#' @param method Installation method. Default ("conda").
-#' "auto" automatically finds a method that will work in the local environment.
-#' Note that the "virtualenv" method is not available on Windows. One of
-#' c("auto", "virtualenv", "conda").
-#' @param ... Additional arguments passed to \code{reticulate::py_install()}
-#' @export
-install_cyrius <- function(envname = "r-ursaPGx", method = "conda", ...) {
-  reticulate::py_install(
-    method = method,
-    envname = envname,
-    packages = c("pysam", "statsmodels", "scipy"),
-    channel = c("conda-forge", "anaconda", "bioconda"),
-    ...
-  )
 }

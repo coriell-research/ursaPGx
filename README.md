@@ -123,19 +123,20 @@ number information, BAM/CRAM files are used as input to the function instead of
 VCF. Please refer to the function documentation (`?cyrius()`) for more 
 information about calling CYP2D6.
 
-Cyrius is a Python program and needs certain Python dependencies to run 
-successfully. In order to run `cyrius()`, first install the necessary 
-dependencies using the `install_cyrius()` function and then activate the environment:
+Cyrius is a Python program. Its Python dependencies (numpy, scipy, pysam, 
+statsmodels) are declared with `reticulate::py_require()` and managed 
+automatically: the first call to `cyrius()` builds a cached Python environment 
+using [uv](https://docs.astral.sh/uv/) (an internet connection is needed the 
+first time). No manual setup is required.
+
+If you would rather use your own Python environment, select it before the 
+first call to `cyrius()`. It must contain the packages listed above:
 
 ```r
-# Install the Cyrius dependencies into a conda env called 'r-ursaPGx'
-install_cyrius()
-
-# Activate the 'r-ursaPGx' environment
-reticulate::use_condaenv("r-ursaPGx")
+reticulate::use_condaenv("my-env")
 ```
 
-Now you're ready to use `cyrius()` to call CYP2D6 alleles from R:
+To call CYP2D6 alleles from R:
 
 ```r
 # Create a vector of BAM/CRAM file paths
