@@ -139,6 +139,35 @@ setMethod("determineCallableAlleles", "PGx", function(x) {
   return(x)
 })
 
+#' Match haplotype definition positions to rows of the sample VCF
+#'
+#' A position can appear in more than one VCF row when multiallelic sites are
+#' split into biallelic records, or when the input contains duplicate records.
+#' For each haplotype position, every row with an equal range whose ALT
+#' allele(s) include the haplotype's ALT allele is matched; if no such row
+#' exists, the first range-equal row is used.
+#' @return data.frame with columns \code{hap} (index into \code{hap}) and
+#' \code{row} (index into \code{rr}).
+#' @noRd
+.matchHaplotypeRows <- function(hap, rr) {
+  ov <- GenomicRanges::findOverlaps(hap, rr, type = "equal")
+  qh <- S4Vectors::queryHits(ov)
+  sh <- S4Vectors::subjectHits(ov)
+  hap_alt <- as.character(VariantAnnotation::alt(hap))
+  rr_alt <- rr$ALT
+  out <- lapply(seq_along(hap), function(k) {
+    cand <- sh[qh == k]
+    if (length(cand) == 0) {
+      return(NULL)
+    }
+    has_alt <- vapply(cand, function(j) hap_alt[k] %in% as.character(rr_alt[[j]]), logical(1))
+    rows <- if (any(has_alt)) cand[has_alt] else cand[1]
+    data.frame(hap = k, row = rows)
+  })
+  out <- do.call(rbind, out)
+  if (is.null(out)) data.frame(hap = integer(), row = integer()) else out
+}
+
 #' Build the reference data frame from the callable allele positions
 #'
 #' The reference data.frame consists of rows for all positions present in the
@@ -161,10 +190,10 @@ setMethod("buildReferenceDataFrame", "PGx", function(x) {
 
   # Fill the df with ALT alleles for each callable allele
   for (i in seq_along(grl)) {
-    idx <- SummarizedExperiment::match(grl[[i]], rr)
+    hits <- .matchHaplotypeRows(grl[[i]], rr)
     alts <- VariantAnnotation::alt(grl[[i]])
     col <- names(grl)[i]
-    df[idx, col] <- alts
+    df[hits$row, col] <- alts[hits$hap]
   }
   
   # Fill missing positions with reference bases

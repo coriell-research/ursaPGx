@@ -23,7 +23,7 @@ availableGenes <- function(build = c("GRCh38", "GRCh37")) {
 #' @return character vector of available defined star alleles (haplotypes)
 #' @export
 #' @examples availableHaplotypes()
-availableHaplotypes <- function(build = "GRCh38") {
+availableHaplotypes <- function(build = c("GRCh38", "GRCh37")) {
   build <- match.arg(build)
   switch (build,
     GRCh38 = names(grch38_haplotype_grl),

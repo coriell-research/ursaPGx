@@ -13,7 +13,7 @@ Encoding: UTF-8
 LazyData: true
 BugReports: https://github.com/coriell-research/ursaPGx/issues
 Suggests:
-    testthat (>= 3.0.0),
+    testthat (>= 3.1.5),
     here
 Config/testthat/edition: 3
 biocViews:

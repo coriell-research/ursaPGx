@@ -7,10 +7,10 @@
 readPGx(file, gene, build = c("GRCh38", "GRCh37"))
 }
 \arguments{
-\item{file}{An indexed, phased, and normalized VCF file. This file must have 
-an index (.tbi) in the same directory.}
+\item{file}{Path to a bgzipped, phased, and normalized VCF file. The file
+must have a tabix (.tbi) or CSI (.csi) index in the same directory.}
 
-\item{gene}{The PGx gene to subset from VCF file. See 
+\item{gene}{The PGx gene to subset from VCF file. See
 \code{availableGenes()} for available genes.}
 
 \item{build}{The genome build. One of "GRCh38" or "GRCh37".}
@@ -20,8 +20,8 @@ Object of class PGx
 }
 \description{
 This function is a wrapper around \code{\link[VariantAnnotation]{readVcf}} that
-reads only the PGx locations into a PGx object. The user must provide an
-indexed VCF file. The path to the indexed VCF file gets passed to
+reads only the PGx locations into a PGx object. The user must provide a
+bgzipped and indexed VCF file. The path to the indexed VCF file gets passed to
 \code{\link[Rsamtools]{TabixFile}} which is then used as the file argument to
 \code{readVcf()}.
 }
@@ -31,16 +31,25 @@ PharmVar VCF files available at \url{https://www.pharmvar.org/download}.
 The "create-reference.R" file included in the data-raw directory of
 this package describes the steps used to reproduce the construction of the
 GRanges object used in this function. These GRanges objects are accessible
-via the \code{availableHaplotypeRanges()} function. The \code{readPGx()} 
-function will attempt to detect the type of seqLevels (chromosome names) used 
-in the sample VCF (e.g. "UCSC" type - chr1, chr2, etc. or "NCBI" type, 1, 2, 
-3, etc.) and modify the ranges of the PharmVar reference accordingly. If the
-VCF header does not define a reference then the function will attempt to use
-"NCBI" type seqlevels for GRCh37 build and "UCSC" type for GRCh38 builds 
-specified by the build argument. If multiple seqLevels are found in the VCF
-header then the function will attempt to use the first defined level. 
-seqLevels of the final PGx object are set to "UCSC" style for GRCh38 and 
-"NCBI" style for GRCh37 to ensure compatibility with downstream processing.
+via the \code{availableGeneRanges()} and \code{availableHaplotypeRanges()}
+functions.
+
+Chromosome names are detected from the sequences listed in the VCF index
+(not the VCF header), so UCSC ("chr10"), NCBI/Ensembl ("10"), dbSNP
+("ch10") and RefSeq ("NC_000010.11") naming are all supported, matched
+case-insensitively. If the VCF header declares contig lengths that disagree
+with the requested build, an error is raised.
+
+Only records whose ranges exactly equal a PharmVar position are retained.
+Records that overlap a PharmVar position without matching it exactly (for
+example indels that are not left-aligned and normalized) are dropped and
+reported with a message. Input VCFs should be normalized, e.g. with
+\code{bcftools norm -m -any -f ref.fa}.
+
+The returned object always uses the package's canonical sequence
+information: "UCSC" style seqlevels and the hg38 genome for GRCh38, and
+"NCBI" style seqlevels and the GRCh37 genome for GRCh37. Rows are sorted by
+position.
 }
 \examples{
 \dontrun{

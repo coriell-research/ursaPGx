@@ -65,13 +65,18 @@ setValidity("PGx", function(object) {
     if (!is(object@pgxBuild)[[1]] == "character") {
         return("pgxBuild must be non-empty")
     }
+    build <- if (length(object@pgxBuild) == 1 && object@pgxBuild %in% c("GRCh38", "GRCh37")) {
+        object@pgxBuild
+    } else {
+        "GRCh38"
+    }
     if (length(object@pgxCallableAlleles) == 1) {
-        if (object@pgxCallableAlleles != "" && !object@pgxCallableAlleles %in% availableHaplotypes()) {
+        if (object@pgxCallableAlleles != "" && !object@pgxCallableAlleles %in% availableHaplotypes(build)) {
             return("callableAlleles must be empty or one of availableHaplotypes()")
         }
     }
     if (length(object@pgxCallableAlleles) > 1) {
-        if (!all(object@pgxCallableAlleles %in% availableHaplotypes())) {
+        if (!all(object@pgxCallableAlleles %in% availableHaplotypes(build))) {
             return("pgxCallableAlleles must be in availableHaplotypes()")
         }
     }

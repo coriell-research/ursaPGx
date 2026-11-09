@@ -4,7 +4,7 @@
 \alias{availableHaplotypes}
 \title{Return all available PGx haplotypes (star alleles)}
 \usage{
-availableHaplotypes(build = "GRCh38")
+availableHaplotypes(build = c("GRCh38", "GRCh37"))
 }
 \arguments{
 \item{build}{Genome build. One of "GRCh38" or "GRCh37"}
